@@ -1,0 +1,15 @@
+@{[ init {
+	inherit "templates/parent.plex";
+	$output={
+		location=>"products"
+		};
+	$menu={
+		path=>"another/entry",
+		order=>1
+		};
+	}
+]}
+
+This is products/test2 html file
+
+Referencing test1

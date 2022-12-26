@@ -1,0 +1,12 @@
+@{[init {
+	use feature "say";
+	use Data::Dumper;
+	}
+]}
+@{[slot("header")]} 
+PARENT TEMPLATE BODY CONTENT
+#####
+@{[slot]}
+#####
+MORE Parent content goes here
+@{[slot footer=> cache "templates/footer.plx"]}

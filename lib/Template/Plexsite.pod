@@ -1,0 +1,64 @@
+=head1 NAME
+
+Template::Plexsite - Site Template
+
+=head1 SYNOPSIS
+
+
+=head1 DESCRIPTION
+
+C<Template::Plexsite> is a template system designed to give flexibility in
+writing templates for repetitive and interlinked content like HTML and CSS.
+
+There is very little external configuration as each template has the power to
+add resources required, import modules and define local help code and
+variables.  L<Template::Plex> is used in the back end to power this module, so
+all the features such as init blocks, inheritance, sub templates, etc are used
+and extended.
+
+=head2 TODO
+
+	Fallback locale
+	progress bar on build
+	filtering options (url encoding)
+	file statistics
+	packing
+
+=head1 TEMPLATE STRUCTURE
+
+=head2 Index file
+
+Plexsite templates are a directory. They can have any number of sub directories
+and files as you require as long as there is a index file present. The prefix
+of the index file must be 'index' and the suffex must be ".plex".  When the PLT
+template is loaded, the first index file found in the PLT dir is loaded:
+
+	eg
+		index.html.plex
+		index.css.plex
+		index.txt.plex
+		index.anything.can.go.here.plex
+
+
+=head2 Locale/Variant
+
+Each PLT template supports variants or locales. The specified locale is the
+name of a directory within the PLT directory,  which is checked for an index
+file (like above). If its found, it will loaded and ready for use if you choose
+to render it
+
+
+=head1 PRCOESSING OVERVIEW
+
+
+
+=head1 INTERLINKED CONTENT
+
+Templates can  link to other static files and templates by using the name of the 
+
+
+
+
+=head1
+
+Templates are the same syntax as L<Template::Plex>, but has been extended into C<Template::Plexsite>

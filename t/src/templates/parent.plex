@@ -1,0 +1,17 @@
+@{[init {
+	use feature "say";
+	use Data::Dumper;
+	}
+]}
+@{[say STDERR "IN PARENT"]}
+@{[slot("header")]} 
+PARENT TEMPLATE BODY CONTENT
+it's ok
+#####
+@{[slot]}
+
+@{[jmap { "<li>$_</li>" } "\n", 1,2,3,5]}
+
+#####
+MORE Parent content goes here
+@{[slot footer=> cache undef, "templates/footer.plx"]}
