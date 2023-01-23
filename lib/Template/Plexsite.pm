@@ -59,9 +59,11 @@ sub load {
 	my $tpath;
 
 	if($path =~ /\.plt$/ and  -d "$root/$path"){
+    # Match the first index file. Prefer file will plex/plx as the second last extension
 		#First index.*.plex file
-		Log::OK::DEBUG and log_debug __PACKAGE__." testing for index";
-		($tpath)= < $root/$path/index.*.plx $root/$path/index.*.plex >;
+		Log::OK::DEBUG and log_debug __PACKAGE__." testing for index at $root/$path";
+		($tpath)= < $root/$path/index.plex.*  $root/$path/index.plx.* $root/$path/index.*.plx $root/$path/index.*.plex >;
+    Log::OK::DEBUG and log_debug "Found first path: $tpath";
 		$tpath =~ s|^$root/||;
 	}
 
@@ -176,7 +178,8 @@ sub output_path {
 		#No explict output name so use the basename of input
 		#without any plex suffix
 		$name =basename $self->meta->{file};
-		$name=~s/\.plex$|\.plx$//;
+		$name=~s/\.plex$|\.plx$//;  #Ending in plex/plx extension
+		$name=~s/(?:\.plex|\.plx)(?=\.)//;  #Not ending in plex/plx extension
 	}
 
 	my @comps=( $config{locale}//(), $config{output}{location}, $name);

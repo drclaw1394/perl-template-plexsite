@@ -108,6 +108,16 @@ $table->build;
 
 exit;
 
+
+
+
+
+
+
+
+
+
+
 CREATE:
 #Create a page entry with a path contained withing the src dir
 

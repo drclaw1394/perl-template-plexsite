@@ -1,8 +1,9 @@
 =head1 NAME
 
-Template::Plexsite - Site Template
+Template::Plexsite - Templating for interlinked templates
 
 =head1 SYNOPSIS
+
 
 
 =head1 DESCRIPTION
@@ -11,10 +12,22 @@ C<Template::Plexsite> is a template system designed to give flexibility in
 writing templates for repetitive and interlinked content like HTML and CSS.
 
 There is very little external configuration as each template has the power to
-add resources required, import modules and define local help code and
+add resources required, import modules and define local helper code and
 variables.  L<Template::Plex> is used in the back end to power this module, so
 all the features such as init blocks, inheritance, sub templates, etc are used
 and extended.
+
+=head1 SO WHAT DOES IT DO?
+
+Specifically, L<Template::Plexsite> provides the boot strapping templates need
+to reference other templates by their original name and locaiton. The final
+destination of the templates does not need to be known.
+
+What that means if you have template A which has a link to template B and vice
+versa, both templates can reference each other without knowing the output
+location beforehand. 
+
+
 
 =head2 TODO
 
@@ -24,31 +37,61 @@ and extended.
 	file statistics
 	packing
 
-=head1 TEMPLATE STRUCTURE
+=head1 ON DISK TEMPLATE STRUCTURE
 
 =head2 Index file
 
-Plexsite templates are a directory. They can have any number of sub directories
-and files as you require as long as there is a index file present. The prefix
-of the index file must be 'index' and the suffex must be ".plex".  When the PLT
-template is loaded, the first index file found in the PLT dir is loaded:
+Plexsite template is:
 
-	eg
-		index.html.plex
-		index.css.plex
-		index.txt.plex
-		index.anything.can.go.here.plex
+=over 
+
+=item Directory with a B<.plt> extension.
+
+The name of the directory can be anything as long as it ends with .plt
+
+=item Must have an index file in the .plt directory
+
+The prefix of the index file must be 'index' and the suffex must either end in
+".plex" or have it as the second last extension
+  ie
+      index.plex.html
+      index.html.plex
+      index.some.other.plex.html
+      index.some.other.html.plex
+  
+The first form is prefered. It gives text editors a chance to perform syntax
+syntax highlighting for known file types for exampl.e
+
+When the PLT template is loaded, the first index file found in the PLT
+directory is loaded:
 
 
-=head2 Locale/Variant
+=item They can have any number of sub directories and files
+
+A template can be a package of sorts containing images, style sheets, other plt
+templates and basic plex templates
+
+
+
+=head2 Locale/Variant 
 
 Each PLT template supports variants or locales. The specified locale is the
 name of a directory within the PLT directory,  which is checked for an index
 file (like above). If its found, it will loaded and ready for use if you choose
 to render it
 
+=back
+
+
 
 =head1 PRCOESSING OVERVIEW
+
+setup/init stage
+  output is calculated
+  accumulated site map
+
+render stage
+  accumulates stie mape is accessable
 
 
 
