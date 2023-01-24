@@ -134,6 +134,7 @@ sub add_resource {
 sub _add_template {
 	my ($self,$input)=@_;
 	Log::OK::INFO and log_info("Resource: Adding template $input");
+	Log::OK::INFO and log_info("Resource: locale set to: $self->[locale_]");
 	my $root=$self->[root_];
 
 	my %opts;
@@ -221,72 +222,79 @@ sub _add_template {
 	return undef;
 }
 
-#Do a lookup of an input resource to find the resulting output url
-sub lookup {
-	my ($self,$input, $base)=@_;
-	$self->[table_]{$input};
-}
+######################################################################
+# #Do a lookup of an input resource to find the resulting output url #
+# sub lookup {                                                       #
+#         my ($self,$input, $base)=@_;                               #
+#         $self->[table_]{$input};                                   #
+# }                                                                  #
+######################################################################
 
 
-#src and dest are input paths
-sub path_from_to {
-	my ($self, $src, $dest)=@_;
-	#Input is relative to root
-	my $src_entry=$self->[table_]{$src};
-	my $dest_entry=$self->[table_]{$dest};
-
-	if($src_entry and $dest_entry){
-		#build output path based on options in entry
-		my $src_output=$src_entry->{output};
-		my $dir=dirname $src_output;
-
-		my $dest_output=$dest_entry->{output};
-		my $rel=abs2rel($dest_output, $dir);
-		return $rel;
-	}
-	undef;
-}
-
-## Create url tables which create outputs relative to output directories
-# The relative table is passed to the template at that dir level to allow 
-# correct relative resolving of resources
-sub permute {
-	my $self=shift;
-	my $force=shift;
-	return $self->[dir_table_] if $self->[dir_table_] and not $force;
-	Log::OK::INFO and log_info "Permuting outputs relative to inputs";
-	\my %table=$self->[table_];
-	my %dir_table;
-
-	for my $input_path(keys %table){
-		my $options=$table{$input_path};
-		my $output_path=$options->{output};
-
-		my $dir=dirname $output_path;
-		next if $dir_table{$dir};
-		my $base=basename $output_path;
-		for my $input_path (keys %table){
-			my $options=$table{$input_path};
-			my $output_path=$options->{output};
-			my $rel=abs2rel($output_path, $dir);
-			$dir_table{$dir}{$input_path}=$rel;
-		}
-	}
-	$self->[dir_table_]=\%dir_table;
-}
+##############################################################################
+# #src and dest are input paths                                              #
+# sub path_from_to {                                                         #
+#         my ($self, $src, $dest)=@_;                                        #
+#         #Input is relative to root                                         #
+#         my $src_entry=$self->[table_]{$src};                               #
+#         my $dest_entry=$self->[table_]{$dest};                             #
+#                                                                            #
+#         if($src_entry and $dest_entry){                                    #
+#                 #build output path based on options in entry               #
+#                 my $src_output=$src_entry->{output};                       #
+#                 my $dir=dirname $src_output;                               #
+#                                                                            #
+#                 my $dest_output=$dest_entry->{output};                     #
+#                 my $rel=abs2rel($dest_output, $dir);                       #
+#                 return $rel;                                               #
+#         }                                                                  #
+#         undef;                                                             #
+# }                                                                          #
+#                                                                            #
+# ## Create url tables which create outputs relative to output directories   #
+# # The relative table is passed to the template at that dir level to allow  #
+# # correct relative resolving of resources                                  #
+# sub permute {                                                              #
+#         my $self=shift;                                                    #
+#         my $force=shift;                                                   #
+#         return $self->[dir_table_] if $self->[dir_table_] and not $force;  #
+#         Log::OK::INFO and log_info "Permuting outputs relative to inputs"; #
+#         \my %table=$self->[table_];                                        #
+#         my %dir_table;                                                     #
+#                                                                            #
+#         for my $input_path(keys %table){                                   #
+#                 my $options=$table{$input_path};                           #
+#                 my $output_path=$options->{output};                        #
+#                                                                            #
+#                 my $dir=dirname $output_path;                              #
+#                 next if $dir_table{$dir};                                  #
+#                 my $base=basename $output_path;                            #
+#                 for my $input_path (keys %table){                          #
+#                         my $options=$table{$input_path};                   #
+#                         my $output_path=$options->{output};                #
+#                         my $rel=abs2rel($output_path, $dir);               #
+#                         $dir_table{$dir}{$input_path}=$rel;                #
+#                 }                                                          #
+#         }                                                                  #
+#         $self->[dir_table_]=\%dir_table;                                   #
+# }                                                                          #
+##############################################################################
 
 sub map_input_to_output {
 	my ($self,$input, $input_reference)=@_;
-	#say "$input= >$input_reference";
+  #say "want input: $input,  relative to: $input_reference";
+
 	my $ref_entry=$self->table->{$input_reference};
-	##say  Dumper $ref_entry;
+  #say  Dumper $ref_entry;
+
 	my $output_reference=$ref_entry->{output};
 
 	my $input_entry=$self->table->{$input};
 	my $output=$input_entry->{output};
 	#say Dumper $self->table;
 	#say Dumper $input_entry;
-	#say Dumper $output_reference;
+  #say "Output field of referenc in put is: $output_reference";
+  #say Dumper $output_reference;
 
 	#make relative path from output  reference to output
 	abs2rel($output,dirname $output_reference);	

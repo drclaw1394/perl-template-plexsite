@@ -28,6 +28,7 @@ sub new {
 	$package->SUPER::new(@_);
 }
 
+
 sub inherit {
 	my $self=shift;
 	unless($_[0]){
@@ -128,6 +129,11 @@ sub post_init {
 		}
 }
 
+sub no_locale_out{
+  my $self=shift;
+  $self->args->{no_locale_out}=1;
+}
+
 #Adds a resource. Input is relatative to root
 #Output dir tree mirrors the in put tree
 sub add_resource {
@@ -182,7 +188,12 @@ sub output_path {
 		$name=~s/(?:\.plex|\.plx)(?=\.)//;  #Not ending in plex/plx extension
 	}
 
-	my @comps=( $config{locale}//(), $config{output}{location}, $name);
+  my $no_locale=$config{output}{no_locale};
+	my @comps=( 
+    $no_locale?():($config{locale}//()),   #add locale only if we want it
+    $config{output}{location}||(),                     #If no location ensure an empty list
+                                                        #to force root
+    $name);
 	my $path=catfile @comps;
 }
 
@@ -196,6 +207,14 @@ sub output {
 
 	#say 'Calling output';
 	for(keys %options){
+
+    # Clean up the location so it doesn't start with a slash
+    # otherwise it breaks the output_path function
+    #
+    if($_ eq "location"){
+      $options{$_}=~s|^/||;   
+    }
+    
 		$output->{$_}=$options{$_};
 	}
 	#update the table entry
@@ -269,10 +288,12 @@ sub build{
 	#copy any resources this template neeeds?
 	
 
-	#Setup lander
+	# Setup lander
+  #
 	if($self->[lander_]){
 		Log::OK::INFO and log_info("Lander for ".$self->output_path." => ".$self->[lander_]);
 		my $html_root=$self->args->{html_root};
+
 		my $link=catfile($html_root,$self->[lander_]);
 		if( -l $link){
 			Log::OK::INFO and log_info("removing existing link");
