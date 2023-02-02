@@ -222,13 +222,11 @@ sub _add_template {
 	return undef;
 }
 
-######################################################################
-# #Do a lookup of an input resource to find the resulting output url #
-# sub lookup {                                                       #
-#         my ($self,$input, $base)=@_;                               #
-#         $self->[table_]{$input};                                   #
-# }                                                                  #
-######################################################################
+#Do a lookup of an input resource to find the resulting output url
+sub lookup {
+        my ($self,$input, $base)=@_;
+        $self->[table_]{$input};
+}
 
 
 ##############################################################################

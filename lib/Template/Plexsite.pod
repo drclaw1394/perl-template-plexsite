@@ -78,7 +78,8 @@ templates and basic plex templates
 Each PLT template supports variants or locales. The specified locale is the
 name of a directory within the PLT directory,  which is checked for an index
 file (like above). If its found, it will loaded and ready for use if you choose
-to render it
+to render it.
+B<NOTE:> The name of the locale index file must be the same as the main one
 
 =back
 
