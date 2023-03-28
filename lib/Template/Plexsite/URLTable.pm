@@ -278,8 +278,14 @@ sub lookup {
 # }                                                                          #
 ##############################################################################
 
+# Returns the relative path between two items in output name space, given the
+# input name space target and reference
+#
+# If input is undefined, returns the relative "." path
+#
 sub map_input_to_output {
 	my ($self, $input, $input_reference)=@_;
+  return "." unless $input;
   #say "want input: $input,  relative to: $input_reference";
 
 	my $ref_entry=$self->table->{$input_reference};

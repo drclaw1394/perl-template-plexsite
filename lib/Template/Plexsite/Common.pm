@@ -122,6 +122,8 @@ sub json_menu {
 
 # Build up links in a html navigation menu, relative to $base href in nav
 # entries are input origin, so need to be converted by table
+# Each level of the menu is sub div
+#
 sub html_menu{
 	my ($nav, $url_table, $base)=@_;
 	my $nav_class="menu_html_container";
@@ -148,31 +150,33 @@ sub html_menu{
 		my $i=shift;
 		my $output="";
 
-    use Data::Dumper;
-    say "DO Level";
-    say "Data: ".Dumper $level->{_data};
 
     #find the current max order
-  
+    my $max; 
     my @pairs=
       grep {$_->[0] ne "_data"}
       pairs $level->%*;
 
-    my $max;
     for my $p (@pairs){
-      #$p->[1]{_
+      for($p->[1]{_data}{order}){
+        
+        unless(defined($max)){
+          $max=$_;
+          next;
+        }
+        $max=$_ if $_>$max;
+      }
     }
-    #$max
+    $max//=0;
 
-    #say "keys: ", keys (($url_table->map_input_to_output($level->{_data}{href}, $base)//{})->%*);
-    #say "keys: ", (($url_table->map_input_to_output($level->{_data}{href}, $base)//{})->{output});
 
 		#Order the children in level according to order field
 		my @stack= 
 		sort {$a->[1]{_data}{order} <=> $b->[1]{_data}{order}}
-		map {$_->[1]{_data}{order}//=0; $_; }
-		grep {$_->[0] ne "_data"}
-		pairs $level->%*;
+		map {$_->[1]{_data}{order}//= ++$max; $_; }
+    @pairs;
+    #grep {$_->[0] ne "_data"}
+    #pairs $level->%*;
 
 
 		#render _data first
@@ -211,7 +215,7 @@ sub html_menu{
 
 		$output;
 	};
-	my $tmp=$do_level->($nav);
+	my $tmp=$do_level->($nav,0);
 	"<style>$css</style>".$tmp;
 }
 
@@ -219,21 +223,6 @@ sub html_menu{
 ## METHODS
 #
 
-###############################################
-# sub init {                                  #
-#         my ($self, $user_sub)=@_;           #
-#                                             #
-#         my $sub = sub {                     #
-#                 print "USER SUB WRAPPER\n"; #
-#                 $user_sub->(@_);            #
-#                 #setup missing vars?        #
-#         };                                  #
-#         print "ABOUT TO DO SUPER";          #
-#         print Dumper $self;                 #
-#         $self->SUPER::init($sub);           #
-#         print "after super";                #
-# }                                           #
-###############################################
 sub pre_init {
 	
 }
