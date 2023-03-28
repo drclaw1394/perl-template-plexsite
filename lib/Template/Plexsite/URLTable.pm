@@ -144,7 +144,7 @@ sub _add_template {
 
 	my %entry=(
 		template=> {
-			config=>{
+			config=>{         # config is the hash used for lexical binding
 				plexsite=>{},
 				menu=>undef,		#Templates spec on menu	(stage 1)
 				nav=>$self->[nav_],		#Acculated menu tree	(stage 2)
@@ -197,13 +197,13 @@ sub _add_template {
 
 			my $parent=$config{nav};
 			for(@parts){
-				$parent = $parent->{$_}//={};
+				$parent = $parent->{$_}//={_data=>{path=>$_}};
 			}
 
 			$parent->{_data}{href}//=$input;
 
 			for( keys $config{menu}->%*){
-				next if $_ eq "path";
+        next if $_ eq "path";
 				$parent->{_data}{$_}=$config{menu}{$_};
 			}
 		}

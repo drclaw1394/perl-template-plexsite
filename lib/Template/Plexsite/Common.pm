@@ -125,7 +125,16 @@ sub json_menu {
 # Each level of the menu is sub div
 #
 sub html_menu{
-	my ($nav, $url_table, $base)=@_;
+	my ($menu_path, $nav, $url_table, $base)=@_;
+  # $menu_path is the unix style file path into the menu 
+  # $nav is the accumulated nav structure representing the entire menu
+  # $url_table is the url mapping table
+  # $base is the base for relative uril (input name space) 
+  #
+
+  
+
+
 	my $nav_class="menu_html_container";
 	my $list_class="menu_list";
 	my $item_class="menu_list_item";
@@ -135,6 +144,9 @@ sub html_menu{
 			width:100%;
 			display:block;
 		}
+    .menu_label.active {
+      color:blue;
+    }
 		ul.$list_class {
 			padding:0;
 		}
@@ -181,10 +193,18 @@ sub html_menu{
 
 		#render _data first
 		$output.="<nav class=\"$nav_class\"><ul class=\"$list_class\">" unless $i;
+    
 		for($level->{_data}){
+      my $checked=(index($menu_path, $_->{path})==0) ?"checked":"";
+      if($checked){
+        say "Nav path: ".$_->{path};
+        say "Active path: ".$menu_path;
+
+      }
+      say "CHECKED: $checked";
 			$_->{href}=~ s|^/||;
 			$output.="<li class=\"$item_class\">";
-			$output.="<input type=\"checkbox\" id=\"input_$seq\" class=\"hidden_checkbox\">" if @stack;
+			$output.="<input type=\"checkbox\" id=\"input_$seq\" class=\"hidden_checkbox\" $checked>asdfasdf</input>" if @stack;
 
 			$css.=qq|.$item_class> #input_$seq:checked ~ .item ~ ul {
 				display:block;
@@ -196,6 +216,9 @@ sub html_menu{
 			| if @stack;
 
 			$output.="<div class=\"item\">";
+      my $active=$menu_label eq $_->{path};
+
+      say "ACTIVE: $active";
 			$output.="<label class=\"menu_label\" for=\"input_$seq\" id=\"label_$seq\">" if @stack;
 
 			$output.="<a href=\"".($url_table->map_input_to_output($_->{href}, $base))."\">$_->{label}</a>
