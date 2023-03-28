@@ -224,7 +224,7 @@ sub _add_template {
 
 #Do a lookup of an input resource to find the resulting output url
 sub lookup {
-        my ($self,$input, $base)=@_;
+        my ($self,$input)=@_;
         $self->[table_]{$input};
 }
 
@@ -279,7 +279,7 @@ sub lookup {
 ##############################################################################
 
 sub map_input_to_output {
-	my ($self,$input, $input_reference)=@_;
+	my ($self, $input, $input_reference)=@_;
   #say "want input: $input,  relative to: $input_reference";
 
 	my $ref_entry=$self->table->{$input_reference};
@@ -370,21 +370,28 @@ sub _static_files {
 sub _render_templates {
 	my ($self)=@_;
 	Log::OK::TRACE and log_trace "URLTable: _render_templates";
+
+  # Sort the templates by relative rendering order of output
+  # This gives accumulation type templates to work
+  my @templates=sort {$a->{template}{config}{output}{order} <=> $b->{template}{config}{output}{order}} values $self->[table_]->%*;
+
+  #use Data::Dumper;
+  #say Dumper $_->{template}{config}{output} for @templates;
+
 	#render all resources
-	for my $input (keys $self->[table_]->%*){
-		my $entry= $self->[table_]{$input};
+  #for my $input (keys $self->[table_]->%*){
+    #my $entry= $self->[table_]{$input};
+  for my $entry(@templates){
 		next unless $entry->{template};
 		try {
 			my $template=$entry->{template}{template};
-			#my $dir_table=$self->permute->{dirname $template->output_path};
-			Log::OK::INFO and log_info "Rendering template $input  => ".$template->output_path;
-			#$self->[table_]{$input}{template}{config}{res}=$dir_table;
-			#Log::OK::INFO and log_info Dumper $dir_table;
+      #Log::OK::INFO and log_info "Rendering template $input  => ".$template->output_path;
+      Log::OK::INFO and log_info "Rendering template   => ".$template->output_path;
 
 			$template->build;
 		}
 		catch($e){
-			Log::OK::ERROR and log_error __PACKAGE__." Could not render $input: $e";	
+      #Log::OK::ERROR and log_error __PACKAGE__." Could not render $input: $e";	
 			Log::OK::ERROR and log_error $e;
 		};
 	}

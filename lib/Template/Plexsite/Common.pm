@@ -120,8 +120,10 @@ sub json_menu {
 
 }
 
+# Build up links in a html navigation menu, relative to $base href in nav
+# entries are input origin, so need to be converted by table
 sub html_menu{
-	my ($nav, $url_table)=@_;
+	my ($nav, $url_table, $base)=@_;
 	my $nav_class="menu_html_container";
 	my $list_class="menu_list";
 	my $item_class="menu_list_item";
@@ -142,15 +144,33 @@ sub html_menu{
 	my $do_level =sub {
 		$seq++;
 		#sleep 1;
-		my $level=shift;#($level, $url_table)=@_;
+		my $level=shift;
 		my $i=shift;
 		my $output="";
 
+    use Data::Dumper;
+    say "DO Level";
+    say "Data: ".Dumper $level->{_data};
+
+    #find the current max order
+  
+    my @pairs=
+      grep {$_->[0] ne "_data"}
+      pairs $level->%*;
+
+    my $max;
+    for my $p (@pairs){
+      #$p->[1]{_
+    }
+    #$max
+
+    #say "keys: ", keys (($url_table->map_input_to_output($level->{_data}{href}, $base)//{})->%*);
+    #say "keys: ", (($url_table->map_input_to_output($level->{_data}{href}, $base)//{})->{output});
 
 		#Order the children in level according to order field
 		my @stack= 
 		sort {$a->[1]{_data}{order} <=> $b->[1]{_data}{order}}
-		map {$_->[1]{_data}{order}//0; $_; }
+		map {$_->[1]{_data}{order}//=0; $_; }
 		grep {$_->[0] ne "_data"}
 		pairs $level->%*;
 
@@ -161,6 +181,7 @@ sub html_menu{
 			$_->{href}=~ s|^/||;
 			$output.="<li class=\"$item_class\">";
 			$output.="<input type=\"checkbox\" id=\"input_$seq\" class=\"hidden_checkbox\">" if @stack;
+
 			$css.=qq|.$item_class> #input_$seq:checked ~ .item ~ ul {
 				display:block;
 			}
@@ -171,8 +192,9 @@ sub html_menu{
 			| if @stack;
 
 			$output.="<div class=\"item\">";
-				$output.="<label class=\"menu_label\" for=\"input_$seq\" id=\"label_$seq\">" if @stack;
-				$output.="<a href=\"$url_table->{$_->{href}}\">$_->{label}</a>
+			$output.="<label class=\"menu_label\" for=\"input_$seq\" id=\"label_$seq\">" if @stack;
+
+			$output.="<a href=\"".($url_table->map_input_to_output($_->{href}, $base))."\">$_->{label}</a>
 			</div>\n";
 			$output.="\n";
 		}

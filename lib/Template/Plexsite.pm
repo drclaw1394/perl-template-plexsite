@@ -217,6 +217,7 @@ sub output {
     
 		$output->{$_}=$options{$_};
 	}
+  $output->{order}//=0;
 	#update the table entry
 	my $table=$self->args->{table}->table;
 	#say "Entry ". Dumper 
