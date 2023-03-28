@@ -12,10 +12,10 @@ C<Template::Plexsite> is a template system designed to give flexibility in
 writing templates for repetitive and interlinked content like HTML and CSS.
 
 There is very little external configuration as each template has the power to
-add resources required, import modules and define local helper code and
-variables.  L<Template::Plex> is used in the back end to power this module, so
-all the features such as init blocks, inheritance, sub templates, etc are used
-and extended.
+add resources, import modules and define local helper code and variables.
+L<Template::Plex> is used in the back end to power this module, so all the
+features such as init blocks, inheritance, sub templates, etc are used and
+extended to implement the interrelational features.
 
 =head1 SO WHAT DOES IT DO?
 
@@ -60,7 +60,7 @@ The prefix of the index file must be 'index' and the suffex must either end in
       index.some.other.html.plex
   
 The first form is prefered. It gives text editors a chance to perform syntax
-syntax highlighting for known file types for exampl.e
+syntax highlighting for known file types for example.
 
 When the PLT template is loaded, the first index file found in the PLT
 directory is loaded:

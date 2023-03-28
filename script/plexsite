@@ -31,6 +31,8 @@ my $base_template;		#The path to the template
 				#don't specifiy one
 my $title;
 my $location;
+my $help_flag;
+my $type="html";
 GetOptions(
 	"src=s"=>\$src,
 	"html_root=s"=>\$html_root,
@@ -38,13 +40,22 @@ GetOptions(
 	"lib=s"=>\@libs,
 	"verbose"=>\$verbose,
 	"create"=>\$create,
+  "type"=>\$type,
 	"base=s"=>\$base_template,
 	"title=s"=>\$title,
 	"location=s"=>\$location,
+  help=>\$help_flag,
 
 
 ) or die "Error in command arguments";
 
+
+if($help_flag){
+
+  eval "require Pod::Usage;
+  Pod::Usage::pod2usage {verbose=>1};
+  ";
+}
 
 die "No src specified" unless $src;
 
@@ -121,6 +132,7 @@ exit;
 CREATE:
 #Create a page entry with a path contained withing the src dir
 
+
 my $data;
 unless($data){
 	local $/=undef;
@@ -132,15 +144,18 @@ my ($content_base, $content_locale)=split /#----/ms,$data, 2;
 
 die "Input node path required" unless @ARGV;
 my $path=$ARGV[0];	#Assume first non switch is target
+# Chech the node contains the plt extension
+Log::OK::TRACE and log_trace "ARGV: ", join ", ", @ARGV;
+die  "Node must end in .plt" unless $path =~ /\.plt$/;
 
 #Make directories
 #--title		#Required
-#--location	#Opional- use normalized inptut path otherwise
+#--location	#Opional- use normalized input path otherwise
 #--base		#Class to inhert from
 
 
 #Paths for index and local_index
-my $index_path=catfile $path, "index.html.plex";
+my $index_path=catfile $path, "index.plex.$type";
 
 #Command line tool is expecting arguments relative to process. However we want
 #all inputs relative to src directory Make all paths absolute and them remove
@@ -174,6 +189,7 @@ for(@temps){
 	s/INHERIT/$base_template/;
 }
 
+
 #Test if files already exist
 
 my $ans="y";
@@ -204,7 +220,7 @@ MAKE_LOCALE:
 #Process locale
 if($locale){
 	say "Locale creation: $locale, for node $input_path";
-	my $locale_index_path=catfile $path, $locale, "index.html.plex";
+	my $locale_index_path=catfile $path, $locale, "index.plex.$type";
 	make_path catfile $path, $locale; #$locale_index_path if $locale_index_path;
 
 	$ans="y";
@@ -229,13 +245,22 @@ exit;
 
 =head1 NAME
 
-plexsite - Plex Template Rendering Tool
+plexsite - Linked Plex Template Rendering Tool
 
 =head1 SYNOPSIS
 
-Create a empty node:
 
+	plexsite CMD OPTIONS --create --title "My title" src/pages/about.plt
+
+=over 
+
+=item Create a empty node:
+  
 	plexsite --create --title "My title" src/pages/about.plt
+
+
+=back
+
 
 Render linked templates from the src dir in current working directory
 
@@ -263,13 +288,12 @@ L<Template::Plexsite>.
 
 =cut
 
-__END__
 
-# Data section is a skeleton node  which  is used as a mini template
-# in generated new templates nodes
 __DATA__
 @{[
 	init {
+    # Data section is a skeleton node  which  is used as a mini template
+    # in generated new templates nodes
 		output	location=>"LOCATION", title=>"TITLE";
 		inherit "INHERIT";
 

@@ -254,7 +254,7 @@ sub locale {
 			$self->[locale_sub_template_]=$self->load($lang_template, $self->args, $self->meta->%*);
 		}
 		catch($e){
-			Log::OK::WARN and log_warn __PACKAGE__." attempt to render non existent locale template. Using empty tempalte instead";
+			Log::OK::WARN and log_warn __PACKAGE__." Could not render template $lang_template. Using empty tempalte instead";
 			Log::OK::WARN and log_warn __PACKAGE__." $e";
 			$self->[locale_sub_template_]=Template::Plex->load([""]);#, $self->args, $self->meta->%*);
 
