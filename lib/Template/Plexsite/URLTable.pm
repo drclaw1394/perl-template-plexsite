@@ -188,25 +188,27 @@ sub _add_template {
 	if(defined $config{output}{location}){
 		#Process menu entry if required
 		#
-		if($config{menu}){
-			Log::OK::DEBUG and log_debug "Template sets a menu entry. Adding to navigation";
-
-			#Split the menu item
-			my @parts=split m|/|, $config{menu}{path};
-			Log::OK::DEBUG and log_debug "Menu path will be: ". join ", ", @parts;
-
-			my $parent=$config{nav};
-			for(@parts){
-				$parent = $parent->{$_}//={_data=>{path=>$_}};
-			}
-
-			$parent->{_data}{href}//=$input;
-
-			for( keys $config{menu}->%*){
-        next if $_ eq "path";
-				$parent->{_data}{$_}=$config{menu}{$_};
-			}
-		}
+        ####################################################################################################
+        #         if($config{menu}){                                                                       #
+        #                 Log::OK::DEBUG and log_debug "Template sets a menu entry. Adding to navigation"; #
+        #                                                                                                  #
+        #                 #Split the menu item                                                             #
+        #                 my @parts=split m|/|, $config{menu}{path};                                       #
+        #                 Log::OK::DEBUG and log_debug "Menu path will be: ". join ", ", @parts;           #
+        #                                                                                                  #
+        #                 my $parent=$config{nav};                                                         #
+        #                 for(@parts){                                                                     #
+        #                         $parent = $parent->{$_}//={_data=>{path=>$_}};                           #
+        #                 }                                                                                #
+        #                                                                                                  #
+        #                 $parent->{_data}{href}//=$input;                                                 #
+        #                                                                                                  #
+        #                 for( keys $config{menu}->%*){                                                    #
+        # next if $_ eq "path";                                                                            #
+        #                         $parent->{_data}{$_}=$config{menu}{$_};                                  #
+        #                 }                                                                                #
+        #         }                                                                                        #
+        ####################################################################################################
 			
 		#add entry to output file table
 		#$entry{output}=$config{locale}."/".$config{output}{location}."/".$target;
@@ -284,11 +286,19 @@ sub lookup {
 # If input is undefined, returns the relative "." path
 #
 sub map_input_to_output {
-	my ($self, $input, $input_reference)=@_;
-  return "." unless $input;
+	my ($self, $target, $reference)=@_;
+  return "." unless $target;
+
+
+  # remove any fragments for lookup
+  my ($input, $frag1)=split "#", $target;
+  my ($input_reference, $frag2)=split "#", $reference;
+
+
+
   #say "want input: $input,  relative to: $input_reference";
 
-	my $ref_entry=$self->table->{$input_reference};
+	my $ref_entry=$self->table->{$reference};
   #say  Dumper $ref_entry;
 
 	my $output_reference=$ref_entry->{output};
@@ -301,7 +311,12 @@ sub map_input_to_output {
   #say Dumper $output_reference;
 
 	#make relative path from output  reference to output
-	abs2rel($output,dirname $output_reference);	
+	my $o=abs2rel($output,dirname $output_reference);	
+  $o=$o."#".$frag1 if $frag1;
+  $o;
+
+  
+
 
 }
 

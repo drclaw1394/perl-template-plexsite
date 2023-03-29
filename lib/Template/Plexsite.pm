@@ -87,6 +87,10 @@ sub load {
 		'sub output{ 
 			$self->output(@_);
 		}'
+    ,
+		'sub navi{ 
+			$self->navi(@_);
+		}'
 		,
 		'sub locale {
 			$self->locale(@_);
@@ -223,6 +227,52 @@ sub output {
 	#say "Entry ". Dumper 
 	my $entry=$table->{$self->args->{plt}};
 	$entry->{output}=$self->output_path;
+}
+
+#Sets the values for a navigation item in a tree like structure
+#CALLED FROM WITHIN A TEMPLATE
+sub navi {
+  my($self,%options)=@_;
+  #Options include:
+  # path: the path in the navitaiton tree
+  # href: the explicit href for anchor. If not supplied defaul it the current page?
+  # order:  relative ordering to other items at the same level
+  # label:  whats actually shown 
+  # icon:  graphics
+
+  
+
+  # URL table
+	my $table=$self->args->{table}->table;
+
+  # Table entry
+	my $entry=$table->{$self->args->{plt}};
+
+  \my %config=$entry->{template}{config};
+  # Split the path and navigate to the level
+  my @part=split m|/|, $options{path};
+
+  my $parent=$config{nav}; #Root of nav object
+  my $inc_path="";
+  for my $part (@part){
+    $parent = $parent->{$part}//={
+      _data => {
+        path=>$inc_path
+      }
+    };
+    $inc_path .= "/";
+  }
+
+  #Copy the values
+  my $data=$parent->{_data};
+  for my ($k, $v) (%options){
+      $data->{$k}=$v;
+  }
+  $data->{href}//=$self->args->{plt};
+  if($data->{href} =~ /^#/){
+    # Fragment ... append plt path
+    $data->{href}=$self->args->{plt}.$data->{href};
+  }
 }
 
 

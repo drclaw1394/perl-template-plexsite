@@ -132,7 +132,7 @@ sub html_menu{
   # $base is the base for relative uril (input name space) 
   #
 
-  
+  say Dumper $nav;  
 
 
 	my $nav_class="menu_html_container";
@@ -204,7 +204,7 @@ sub html_menu{
       say "CHECKED: $checked";
 			$_->{href}=~ s|^/||;
 			$output.="<li class=\"$item_class\">";
-			$output.="<input type=\"checkbox\" id=\"input_$seq\" class=\"hidden_checkbox\" $checked>asdfasdf</input>" if @stack;
+			$output.="<input type=\"checkbox\" id=\"input_$seq\" class=\"hidden_checkbox\" $checked></input>" if @stack;
 
 			$css.=qq|.$item_class> #input_$seq:checked ~ .item ~ ul {
 				display:block;
@@ -221,7 +221,7 @@ sub html_menu{
       say "ACTIVE: $active";
 			$output.="<label class=\"menu_label\" for=\"input_$seq\" id=\"label_$seq\">" if @stack;
 
-			$output.="<a href=\"".($url_table->map_input_to_output($_->{href}, $base))."\">$_->{label}</a>
+			$output.="<a href=\"".($url_table->map_input_to_output($_->{href}, $base))."\">$_->{label}</a></label>
 			</div>\n";
 			$output.="\n";
 		}
