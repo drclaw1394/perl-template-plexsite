@@ -33,6 +33,7 @@ my $title;
 my $location;
 my $help_flag;
 my $type="html";
+my %define;
 GetOptions(
 	"src=s"=>\$src,
 	"html_root=s"=>\$html_root,
@@ -44,6 +45,7 @@ GetOptions(
 	"base=s"=>\$base_template,
 	"title=s"=>\$title,
 	"location=s"=>\$location,
+  "define=s"=>\%define,
   help=>\$help_flag,
 
 
@@ -170,10 +172,6 @@ say "PATH: $path";
 make_path $path;
 
 
-#my $abs_location=rel2abs $html_root;
-#$location=abs2rel(rel2abs($location),$html_root);
-#strip anything after an including .plt
-#$location=~s/\.plt.*$//;
 
 unless($location){
 	$location=$input_path=~s/\.plt//gr;
@@ -295,14 +293,9 @@ __DATA__
     # Data section is a skeleton node  which  is used as a mini template
     # in generated new templates nodes
 		output	location=>"LOCATION", title=>"TITLE";
-		inherit "INHERIT";
+    #inherit "INHERIT";
 
-		$fields{menu}={
-			order=>1,
-			path=>"products/camera",
-			label=>"Gen 2 Wireline Camera",
-			icon=>"hello"
-		};
+    #navi  path=>"menu/path", label=>"label", href=>"url_or_frag";
 	}
 ]}
 
@@ -311,6 +304,7 @@ __DATA__
 @{[
 	init {
 		output	location=>"LOCATION", title=>"TITLE";
+    #inherit "INHERIT";
 
 	}
 ]}

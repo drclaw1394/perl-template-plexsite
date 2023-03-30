@@ -323,36 +323,41 @@ sub locale {
 
 sub build{
 	my $self=shift;
+  my ($fields)=@_;
 	my $result=$self->SUPER::render(@_);
-	my $file=catfile $self->args->{html_root}, $self->output_path;
-	mkpath dirname $file;		#make dir for output
 
-	my $fh;
-	unless(open $fh, ">", $file){
-		Log::OK::ERROR and log_error "Could not open output location file $file";
-	}
+  #unless($fields->{no_file}){
+    my $file=catfile $self->args->{html_root}, $self->output_path;
+    mkpath dirname $file;		#make dir for output
 
-	Log::OK::DEBUG and log_debug("writing to file $file");
-	print $fh $result;
-	close $fh;
+    my $fh;
+    unless(open $fh, ">", $file){
+      Log::OK::ERROR and log_error "Could not open output location file $file";
+    }
 
-	#copy any resources this template neeeds?
-	
+    Log::OK::DEBUG and log_debug("writing to file $file");
+    print $fh $result;
+    close $fh;
 
-	# Setup lander
-  #
-	if($self->[lander_]){
-		Log::OK::INFO and log_info("Lander for ".$self->output_path." => ".$self->[lander_]);
-		my $html_root=$self->args->{html_root};
+    #copy any resources this template neeeds?
 
-		my $link=catfile($html_root,$self->[lander_]);
-		if( -l $link){
-			Log::OK::INFO and log_info("removing existing link");
-			unlink $link;
-		}
-		#say "Symlink result: ".
-		symlink $self->output_path, $link;#$self->args->{input};
-	}
+
+    # Setup lander
+    #
+    if($self->[lander_]){
+      Log::OK::INFO and log_info("Lander for ".$self->output_path." => ".$self->[lander_]);
+      my $html_root=$self->args->{html_root};
+
+      my $link=catfile($html_root,$self->[lander_]);
+      if( -l $link){
+        Log::OK::INFO and log_info("removing existing link");
+        unlink $link;
+      }
+      #say "Symlink result: ".
+      symlink $self->output_path, $link;#$self->args->{input};
+    }
+    #}
+  $result;
 }
 
 
