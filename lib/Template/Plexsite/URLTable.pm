@@ -48,8 +48,11 @@ sub add_resource {
 	
 	my $root=$self->[root_];
 	\my %table=$self->[table_];
+
 	my $return;
+
 	#Show warning if resource is already included
+  #
 	if($table{$input}){
 		#Log::OK::WARN and log_warn "Resource: input $input already exists in table. Skipping";
 		$return=$input;
@@ -60,16 +63,18 @@ sub add_resource {
 	#TODO: add filter to options for restricting file types
 	
 
-	#Test if input is infact a dir
 	my $path=$root."/".$input;
+
 	#test if input actually exists
 	unless( -e $path){
 		Log::OK::WARN and log_warn __PACKAGE__." Resource: input $path does not exist.";
 		return undef;
 	}
 
+	#Test if input is in fact a plain dir or a plt template
+  #
 	if(-d $path and $path =~ /plt$/){
-		$return=$self->_add_template($input);
+		$return=$self->_add_template($input, %options);
 		goto OUTPUT;
 
 	}
@@ -116,6 +121,9 @@ sub add_resource {
 		$table{$in}=\%options;
 		Log::OK::INFO and log_info "Resource: Adding $in => $table{$in}{output}";
 		$return=$in;
+    #say "ADDING Static file:";
+    #say $return;
+    #sleep 1;
 		goto OUTPUT;
 	}
 
@@ -132,9 +140,11 @@ sub add_resource {
 #setup table entry
 #
 sub _add_template {
-	my ($self,$input)=@_;
+	my ($self, $input, %options)=@_;
+
 	Log::OK::INFO and log_info("Resource: Adding template $input");
 	Log::OK::INFO and log_info("Resource: locale set to: $self->[locale_]");
+
 	my $root=$self->[root_];
 
 	my %opts;
@@ -145,6 +155,7 @@ sub _add_template {
 	my %entry=(
 		template=> {
 			config=>{         # config is the hash used for lexical binding
+        target=>$options{target},  # relative path to document. overrides plt for nav
 				plexsite=>{},
 				menu=>undef,		#Templates spec on menu	(stage 1)
 				nav=>$self->[nav_],		#Acculated menu tree	(stage 2)
@@ -182,33 +193,11 @@ sub _add_template {
 	\my %config=$entry{template}{config};
 
 	$self->[table_]{$input}=\%entry;	#Add before load
+
 	#Inputs are dirs with plt extensions. A index.html page exists inside
 	my $template=Template::Plexsite->load($input, \%config, %opts);
 	#If Output variable is set, we can add it to the list
 	if(defined $config{output}{location}){
-		#Process menu entry if required
-		#
-        ####################################################################################################
-        #         if($config{menu}){                                                                       #
-        #                 Log::OK::DEBUG and log_debug "Template sets a menu entry. Adding to navigation"; #
-        #                                                                                                  #
-        #                 #Split the menu item                                                             #
-        #                 my @parts=split m|/|, $config{menu}{path};                                       #
-        #                 Log::OK::DEBUG and log_debug "Menu path will be: ". join ", ", @parts;           #
-        #                                                                                                  #
-        #                 my $parent=$config{nav};                                                         #
-        #                 for(@parts){                                                                     #
-        #                         $parent = $parent->{$_}//={_data=>{path=>$_}};                           #
-        #                 }                                                                                #
-        #                                                                                                  #
-        #                 $parent->{_data}{href}//=$input;                                                 #
-        #                                                                                                  #
-        #                 for( keys $config{menu}->%*){                                                    #
-        # next if $_ eq "path";                                                                            #
-        #                         $parent->{_data}{$_}=$config{menu}{$_};                                  #
-        #                 }                                                                                #
-        #         }                                                                                        #
-        ####################################################################################################
 			
 		#add entry to output file table
 		#$entry{output}=$config{locale}."/".$config{output}{location}."/".$target;
@@ -394,8 +383,9 @@ sub _render_templates {
 
   # Sort the templates by relative rendering order of output
   # This gives accumulation type templates to work
-  my @templates=sort {$a->{template}{config}{output}{order} <=> $b->{template}{config}{output}{order}} values $self->[table_]->%*;
+  #my @templates=sort {$a->{template}{config}{output}{order} <=> $b->{template}{config}{output}{order}} values $self->[table_]->%*;
 
+  my @templates=$self->ordered_entries;
   #use Data::Dumper;
   #say Dumper $_->{template}{config}{output} for @templates;
 
@@ -417,6 +407,44 @@ sub _render_templates {
 		};
 	}
 
+}
+
+# Sort entries by the specified render order
+sub ordered_entries {
+  my ($self)=@_;
+
+  # First it gives entries an order if not already set
+
+    #find the current max order
+    my $max; 
+    use List::Util qw<any pairs>;
+    my @pairs=
+      grep {defined $_->[1]{template}}
+      pairs $self->[table_]->%*;
+
+    say "paris:", @pairs;
+    sleep 1;
+    for my $p (@pairs){
+      for($p->[1]{template}{output}{order}){
+        
+        unless(defined($max)){
+          $max=$_;
+          next;
+        }
+        $max=$_ if defined($_) and $_>$max;
+      }
+    }
+    $max//=0;
+
+
+
+
+
+    sort {$a->{template}{config}{output}{order} <=> $b->{template}{config}{output}{order}} values $self->[table_]->%*;
+    #map $_->[1],
+    #sort {$a->[1]{template}{config}{output}{order} <=> $b->[1]{template}{config}{output}{order}}
+    #map {$_->[1]{template}{output}{order}//= ++$max; $_; }
+    #@pairs;
 }
 
 sub clear {

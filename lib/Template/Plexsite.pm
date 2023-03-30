@@ -138,8 +138,11 @@ sub no_locale_out{
   $self->args->{no_locale_out}=1;
 }
 
-#Adds a resource. Input is relatative to root
+#Adds a resource. Input is relatative to root (src)
 #Output dir tree mirrors the in put tree
+#If the table entry specifies a target field, this overrides the plt path
+#This is most useful when a template renders other templates as content instead of links
+#
 sub add_resource {
 	my ($self, $input, @options)=@_;
 	#use the URLTable object in args 	
@@ -147,7 +150,7 @@ sub add_resource {
 	my $return=$table->add_resource($input, @options);
 	
 	#return the output relative path directly
-	my $path=$table->map_input_to_output($input, $self->args->{plt});
+	my $path=$table->map_input_to_output($input, $self->args->{target}//$self->args->{plt});
 	return $path;
 
 		
@@ -271,7 +274,7 @@ sub navi {
   $data->{href}//=$self->args->{plt};
   if($data->{href} =~ /^#/){
     # Fragment ... append plt path
-    $data->{href}=$self->args->{plt}.$data->{href};
+    $data->{href}=($self->args->{target}//$self->args->{plt}).$data->{href};
   }
 }
 
