@@ -54,7 +54,7 @@ sub add_resource {
 	#Show warning if resource is already included
   #
 	if($table{$input}){
-		#Log::OK::WARN and log_warn "Resource: input $input already exists in table. Skipping";
+		Log::OK::WARN and log_warn "Resource: input $input already exists in table. Skipping";
 		$return=$input;
 		goto OUTPUT;
 		#return $input;
@@ -121,9 +121,6 @@ sub add_resource {
 		$table{$in}=\%options;
 		Log::OK::INFO and log_info "Resource: Adding $in => $table{$in}{output}";
 		$return=$in;
-    #say "ADDING Static file:";
-    #say $return;
-    #sleep 1;
 		goto OUTPUT;
 	}
 
@@ -285,19 +282,13 @@ sub map_input_to_output {
 
 
 
-  #say "want input: $input,  relative to: $input_reference";
 
 	my $ref_entry=$self->table->{$reference};
-  #say  Dumper $ref_entry;
 
 	my $output_reference=$ref_entry->{output};
 
 	my $input_entry=$self->table->{$input};
 	my $output=$input_entry->{output};
-	#say Dumper $self->table;
-	#say Dumper $input_entry;
-  #say "Output field of referenc in put is: $output_reference";
-  #say Dumper $output_reference;
 
 	#make relative path from output  reference to output
 	my $o=abs2rel($output,dirname $output_reference);	
@@ -387,7 +378,6 @@ sub _render_templates {
 
   my @templates=$self->ordered_entries;
   #use Data::Dumper;
-  #say Dumper $_->{template}{config}{output} for @templates;
 
 	#render all resources
   #for my $input (keys $self->[table_]->%*){
@@ -409,7 +399,7 @@ sub _render_templates {
 
 }
 
-# Sort entries by the specified render order
+# Sort template entries by the specified render order
 sub ordered_entries {
   my ($self)=@_;
 
@@ -422,10 +412,9 @@ sub ordered_entries {
       grep {defined $_->[1]{template}}
       pairs $self->[table_]->%*;
 
-    say "paris:", @pairs;
-    sleep 1;
+
     for my $p (@pairs){
-      for($p->[1]{template}{output}{order}){
+      for($p->[1]{template}{config}{output}{order}){
         
         unless(defined($max)){
           $max=$_;
@@ -438,13 +427,11 @@ sub ordered_entries {
 
 
 
-
-
-    sort {$a->{template}{config}{output}{order} <=> $b->{template}{config}{output}{order}} values $self->[table_]->%*;
-    #map $_->[1],
-    #sort {$a->[1]{template}{config}{output}{order} <=> $b->[1]{template}{config}{output}{order}}
-    #map {$_->[1]{template}{output}{order}//= ++$max; $_; }
-    #@pairs;
+    #sort {$a->{template}{config}{output}{order} <=> $b->{template}{config}{output}{order}} values $self->[table_]->%*;
+    map $_->[1],
+    sort {$a->[1]{template}{config}{output}{order} <=> $b->[1]{template}{config}{output}{order}}
+    map {$_->[1]{template}{config}{output}{order}//= ++$max; $_; }
+    @pairs;
 }
 
 sub clear {

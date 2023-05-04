@@ -20,7 +20,7 @@ use File::Path qw<mkpath>;
 use Data::Dumper;
 
 use constant KEY_OFFSET=>Template::Plex::KEY_COUNT+Template::Plex::KEY_OFFSET;
-use enum ("dependencies_=".KEY_OFFSET,qw<locale_sub_template_ input_path_ output_path_ lander_>);
+use enum ("dependencies_=".KEY_OFFSET,qw<locale_sub_template_ input_path_ output_path_>);
 use constant KEY_COUNT=> output_path_- dependencies_+1;
 
 sub new {
@@ -125,7 +125,6 @@ sub post_init {
 		my $root=$self->meta->{root};
 		my $locale=$self->args->{locale};
 		for ( $self->meta->{_input_path}) {
-			#say "INPUT PATH $root/$_/$locale";
 			if(/\.plt$/ and -d "$root/$_/$locale" ){
 			Log::OK::DEBUG and log_debug __PACKAGE__." post_init looking for locale ".$self->args->{locale};
 				$self->[locale_sub_template_]//=$self->locale;
@@ -212,7 +211,6 @@ sub output {
 	my %options=@_;
 	my $output=$self->args->{output}||={};
 
-	#say 'Calling output';
 	for(keys %options){
 
     # Clean up the location so it doesn't start with a slash
@@ -224,10 +222,9 @@ sub output {
     
 		$output->{$_}=$options{$_};
 	}
-  $output->{order}//=0;
+  #$output->{order}//=0;
 	#update the table entry
 	my $table=$self->args->{table}->table;
-	#say "Entry ". Dumper 
 	my $entry=$table->{$self->args->{plt}};
 	$entry->{output}=$self->output_path;
 }
@@ -266,12 +263,20 @@ sub navi {
     $inc_path .= "/";
   }
 
+
   #Copy the values
   my $data=$parent->{_data};
   for my ($k, $v) (%options){
       $data->{$k}=$v;
   }
-  $data->{href}//=$self->args->{plt};
+
+  # Set the order to match render order if one wasn't supplied
+  $data->{order}//=$entry->{template}{config}{output}{order};
+
+  # If no href use the plt or the target
+  $data->{href}//=$self->args->{target}//$self->args->{plt};
+
+  #If just a fragment fix it to the plt path or target path
   if($data->{href} =~ /^#/){
     # Fragment ... append plt path
     $data->{href}=($self->args->{target}//$self->args->{plt}).$data->{href};
@@ -281,9 +286,12 @@ sub navi {
 
 sub lander {
 	my $self=shift;
-	#my %options=@_;
-	my ($lander)=@_;
-	$self->[lander_]=$lander;
+	my %options=@_;
+
+	my $table=$self->args->{table}->table;
+	my $entry=$table->{$self->args->{plt}};
+	$entry->{lander}=\%options;
+
 	
 }
 
@@ -301,7 +309,6 @@ sub locale {
 		$lang_code=$self->args->{locale};
 	}
 	my $lang_template;
-	#say STDERR "Language code is $lang_code";
 	if($lang_code){
 		$lang_template=catfile $dir,$lang_code//(), $basename;
 		try {
@@ -329,6 +336,7 @@ sub build{
   my ($fields)=@_;
 	my $result=$self->SUPER::render(@_);
 
+
   #unless($fields->{no_file}){
     my $file=catfile $self->args->{html_root}, $self->output_path;
     mkpath dirname $file;		#make dir for output
@@ -347,17 +355,47 @@ sub build{
 
     # Setup lander
     #
-    if($self->[lander_]){
-      Log::OK::INFO and log_info("Lander for ".$self->output_path." => ".$self->[lander_]);
-      my $html_root=$self->args->{html_root};
 
-      my $link=catfile($html_root,$self->[lander_]);
-      if( -l $link){
-        Log::OK::INFO and log_info("removing existing link");
+    my $table=$self->args->{table}->table;
+    my $entry=$table->{$self->args->{plt}};
+    my $lander=$entry->{lander};
+
+    if($lander){
+      $lander->{location}//="";
+      $lander->{name}//="index.lander";
+      $lander->{type}//="refresh";
+
+      
+      my $html_root=$self->args->{html_root};
+      my $link=catfile($html_root, $lander->{location}, $lander->{name});
+
+      if( -e $link){
+        Log::OK::INFO and log_info("removing existing lander link");
         unlink $link;
       }
-      #say "Symlink result: ".
-      symlink $self->output_path, $link;#$self->args->{input};
+
+      for($lander->{type}){
+        if(/refresh/){
+          # Spit out a html with meta tag for refresh
+          open my $fh, ">", $link;
+          print $fh qq|
+          <html>
+            <head>
+              <meta http-equiv="refresh" content="0; url=@{[$self->output_path]}">
+            </head>
+          </html>
+          |;
+
+        }
+        elsif(/symlink/){
+          #Log::OK::INFO and log_info("Lander for ".$self->output_path." => ".$self->[lander_]);
+
+          symlink $self->output_path, $link;#$self->args->{input};
+        }
+        else{
+          # Unkown lander config
+        }
+      }
     }
     #}
   $result;

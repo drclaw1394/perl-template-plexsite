@@ -28,6 +28,25 @@ versa, both templates can reference each other without knowing the output
 location beforehand. 
 
 
+=head1 DIRECTIVES
+
+=head2 inherit
+
+template_path
+
+=head2 output
+
+location title
+
+=head2 lander
+
+location name type
+
+=head2 locale
+ 
+name
+
+
 
 =head2 TODO
 
