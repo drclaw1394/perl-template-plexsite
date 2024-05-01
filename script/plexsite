@@ -160,7 +160,7 @@ die  "Node must end in .plt" unless $path =~ /\.plt$/;
 my $index_path=catfile $path, "index.plex.$type";
 
 #Command line tool is expecting arguments relative to process. However we want
-#all inputs relative to src directory Make all paths absolute and them remove
+#all inputs relative to src directory. Make all paths absolute and them remove
 #src prefix
 #
 my $abs_src=rel2abs $src;

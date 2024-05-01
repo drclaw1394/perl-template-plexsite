@@ -193,6 +193,7 @@ sub _add_template {
 
 	#Inputs are dirs with plt extensions. A index.html page exists inside
 	my $template=Template::Plexsite->load($input, \%config, %opts);
+
 	#If Output variable is set, we can add it to the list
 	if(defined $config{output}{location}){
 			
@@ -374,7 +375,6 @@ sub _render_templates {
 
   # Sort the templates by relative rendering order of output
   # This gives accumulation type templates to work
-  #my @templates=sort {$a->{template}{config}{output}{order} <=> $b->{template}{config}{output}{order}} values $self->[table_]->%*;
 
   my @templates=$self->ordered_entries;
   #use Data::Dumper;
@@ -386,17 +386,22 @@ sub _render_templates {
 		next unless $entry->{template};
 		try {
 			my $template=$entry->{template}{template};
-      #Log::OK::INFO and log_info "Rendering template $input  => ".$template->output_path;
-      Log::OK::INFO and log_info "Rendering template   => ".$template->output_path;
+      if(defined $template){
+        #Log::OK::INFO and log_info "Rendering template $input  => ".$template->output_path;
+        Log::OK::INFO and log_info "Rendering template   => ".$template->output_path;
 
-			$template->build;
+        $template->build;
+      }
+      else {
+        Log::OK::INFO and log_info "No output location for template $entry->{template}{config}{plt}. Ignoring";
+        
+      }
 		}
 		catch($e){
       #Log::OK::ERROR and log_error __PACKAGE__." Could not render $input: $e";	
 			Log::OK::ERROR and log_error $e;
 		};
 	}
-
 }
 
 # Sort template entries by the specified render order

@@ -15,7 +15,7 @@ use parent "Template::Plex";
 
 our $VERSION="v0.1.0";
 use File::Basename qw<dirname basename>;
-use File::Spec::Functions qw<catfile catdir>;
+use File::Spec::Functions qw<catfile catdir abs2rel>;
 use File::Path qw<mkpath>;
 use Data::Dumper;
 
@@ -23,26 +23,59 @@ use constant KEY_OFFSET=>Template::Plex::KEY_COUNT+Template::Plex::KEY_OFFSET;
 use enum ("dependencies_=".KEY_OFFSET,qw<locale_sub_template_ input_path_ output_path_>);
 use constant KEY_COUNT=> output_path_- dependencies_+1;
 
+
+# Resolves a plt  dir path to the first index found in the plt dir. Root (src
+# root) must be supplied
+sub _first_index_path {
+  my $self=shift;
+  my $path=shift;
+  my $root=shift;
+
+  # Plexsite can also use a plt directory as a parent. Here we need to resolve
+  # to the first index.plex.* file located in the dir
+  #my $root=$self->meta->{root};
+  my $tpath;
+
+	if($path =~ /\.plt$/ and  -d "$root/$path"){
+    # Match the first index file. Prefer file will plex/plx as the second last extension
+		#First index.*.plex file
+		Log::OK::DEBUG and log_debug __PACKAGE__." testing for index at $root/$path";
+		($tpath)= < $root/$path/index.plex.*  $root/$path/index.plx.* $root/$path/index.*.plx $root/$path/index.*.plex >;
+    Log::OK::DEBUG and log_debug "Found first path: $tpath";
+		$tpath =~ s|^$root/||;
+	}
+
+  $tpath//=$path;
+
+  $tpath;
+}
+
 sub new {
 	my $package=shift;
 	$package->SUPER::new(@_);
 }
 
-
+# Take a path (relative to src) to a plex/plx or plt
 sub inherit {
 	my $self=shift;
-	unless($_[0]){
+  my $tpath=$_[0]; 
+	unless($tpath){
 		Log::OK::INFO and log_info "undefined parent template. Disabling inheritance";
 		return;
 	}
+
+  # Plexsite can also use a plt directory as a parent. Here we need to resolve
+  # to the first index.plex.* file located in the dir
+  my $root=$self->meta->{root};
+  $tpath=$self->_first_index_path($tpath, $root);
+
 	#TODO: Check that output has been called
 	my $table=$self->args->{table}->table;
 	my $entry=$table->{$self->args->{plt}};
 	unless($entry->{output}){
 		Log::OK::ERROR and log_error "inhert called before output in ". $self->args->{plt} ;
 	}
-
-	$self->SUPER::inherit(@_);
+	$self->SUPER::inherit($tpath);
 }
 
 # Locates the first index.*.plex file in a plt directory and loads it
@@ -57,25 +90,9 @@ sub load {
 	my $root=$options{root}//=$meta->{root};
 
 	#Path can be to a plt dir. If so find the index file and  load it
-	my $tpath;
+	my $tpath=$self->_first_index_path($path, $root);
 
-	if($path =~ /\.plt$/ and  -d "$root/$path"){
-    # Match the first index file. Prefer file will plex/plx as the second last extension
-		#First index.*.plex file
-		Log::OK::DEBUG and log_debug __PACKAGE__." testing for index at $root/$path";
-		($tpath)= < $root/$path/index.plex.*  $root/$path/index.plx.* $root/$path/index.*.plx $root/$path/index.*.plex >;
-    Log::OK::DEBUG and log_debug "Found first path: $tpath";
-		$tpath =~ s|^$root/||;
-	}
-
-	if($tpath){
-		Log::OK::INFO and log_info __PACKAGE__.": index found: $tpath";
-	}
-
-	
-	$tpath//=$path;
-
-	#This is neede to make static class method work to load
+	#This is needed to make static class method work to load
 	my %l_options=$meta->%*;
 	$l_options{_input_path}=$path;
 	$l_options{root}=$root;
@@ -103,6 +120,15 @@ sub load {
 		'sub plt_res {
 			$self->add_plt_resource(@_);
 		}',
+    'sub existing_res {
+      $self->existing_resource(@_);
+    }',
+    'sub sys_path_src{
+      $self->sys_path_src(@_);
+    }',
+    'sub sys_path_build{
+      $self->sys_path_build(@_);
+    }',
 		'sub lander {
 			$self->lander(@_);
 		}'
@@ -112,6 +138,7 @@ sub load {
 	my $template=$self->SUPER::load($tpath, $args, %l_options);
 	$template;
 }
+
 sub pre_init {
 
 	$_[0][input_path_]=$_[0]->meta->{_input_path};
@@ -153,6 +180,49 @@ sub add_resource {
 	return $path;
 
 		
+}
+
+# Returns a path usable by IO (open etc). The input path is relative to either the src or build directory
+#
+sub sys_path_src {
+  my $self=shift;
+  my $path=shift;
+  my $root=$self->meta->{root};
+  # Return  the path relative to the the root (src) dir
+  $root."/".$path;
+}
+
+sub sys_path_build {
+  my $self=shift;
+  my $path=shift;
+  my $root=$self->args->{html_root};
+  # Return  the path relative to the the root (src) dir
+  $root."/".$path;
+}
+
+
+#  Returns a relative path from the current document to the resource expected
+#  to already exist in the output/build dir
+#  USE CASE: External data (ie video and jpack data) might already exist in the build  directory.
+#           This function will give the required path for the document to access the file, without adding it as
+#           an explicit resource in the url table (which is only for input resources)
+#
+#  NOTES: ASSUMES THE REFERENCE IS FILE NOT A DIRECTORY. ADD AN ARBITART COMPONENT TO REF IF IT IS A DIR
+#
+sub existing_resource {
+  my $self=shift;
+  my $path=shift;
+  my $root=$self->args->{html_root};
+  my $target="/".$root."/".$path;
+  
+  use Data::Dumper;
+  # Get the output location of this template
+  my $ref="/".$root."/".$self->output_path;
+
+  # make a relative path from ref to target
+  abs2rel($target, dirname $ref);
+  
+
 }
 
 
@@ -334,6 +404,7 @@ sub locale {
 sub build{
 	my $self=shift;
   my ($fields)=@_;
+  
 	my $result=$self->SUPER::render(@_);
 
 
