@@ -15,12 +15,12 @@ There is very little external configuration as each template has the power to
 add resources, import modules and define local helper code and variables.
 L<Template::Plex> is used in the back end to power this module, so all the
 features such as init blocks, inheritance, sub templates, etc are used and
-extended to implement the interrelational features.
+extended to implement the relational features.
 
 =head1 SO WHAT DOES IT DO?
 
 Specifically, L<Template::Plexsite> provides the boot strapping templates need
-to reference other templates by their original name and locaiton. The final
+to B<reference other templates by their original name and location>. The final
 destination of the templates does not need to be known.
 
 What that means if you have template A which has a link to template B and vice

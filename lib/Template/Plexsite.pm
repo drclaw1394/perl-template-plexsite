@@ -24,7 +24,7 @@ use enum ("dependencies_=".KEY_OFFSET,qw<locale_sub_template_ input_path_ output
 use constant KEY_COUNT=> output_path_- dependencies_+1;
 
 
-# Resolves a plt  dir path to the first index found in the plt dir. Root (src
+# Resolves a plt dir path to the first index found in the plt dir. Root (src
 # root) must be supplied
 sub _first_index_path {
   my $self=shift;
@@ -55,7 +55,10 @@ sub new {
 	$package->SUPER::new(@_);
 }
 
-# Take a path (relative to src) to a plex/plx or plt
+# Take a path (relative to src) to a plex/plx or plt to use as base class
+# First index file is use if plt is specified
+# Overrides Template::Plex
+#
 sub inherit {
 	my $self=shift;
   my $tpath=$_[0]; 
@@ -80,6 +83,9 @@ sub inherit {
 
 # Locates the first index.*.plex file in a plt directory and loads it
 # as the body of the plt template.
+#
+# Adds important subroutines into the template namespace for resolving relative paths
+#
 sub load {
 	my ($self, $path, $args, %options)=@_;
 	Log::OK::TRACE and log_trace __PACKAGE__.": load called for $path";
@@ -128,6 +134,9 @@ sub load {
     }',
     'sub sys_path_build{
       $self->sys_path_build(@_);
+    }',
+    'sub plt_path{
+      $self->plt_path(@_);
     }',
 		'sub lander {
 			$self->lander(@_);
@@ -241,6 +250,25 @@ sub add_plt_resource {
 		$plt_input,
 		%options
 	);
+	
+}
+
+# Path to a file inside a plt template. DOES NOT ADD AS RESOURCE
+sub plt_path {
+	my ($self, $input, %options)=@_;
+	#input is relative to the closes plt dir
+	my $plt_dir=$self->[input_path_];
+	while($plt_dir ne "." and basename($plt_dir)!~/plt$/){
+		$plt_dir=dirname $plt_dir;
+	}
+	$options{output}=catfile dirname($self->output_path), $input;
+	my $plt_input= catfile($plt_dir,$input);
+        ########################
+        # $self->add_resource( #
+        #         $plt_input,  #
+        #         %options     #
+        # );                   #
+        ########################
 	
 }
 
