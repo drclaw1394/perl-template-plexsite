@@ -129,6 +129,7 @@ sub load {
     'sub existing_res {
       $self->existing_resource(@_);
     }',
+
     'sub sys_path_src{
       $self->sys_path_src(@_);
     }',
@@ -182,7 +183,7 @@ sub add_resource {
 	my ($self, $input, @options)=@_;
 	#use the URLTable object in args 	
 	my $table=$self->args->{table};
-	my $return=$table->add_resource($input, @options);
+	$input=$table->add_resource($input, @options);
 	
 	#return the output relative path directly
 	my $path=$table->map_input_to_output($input, $self->args->{target}//$self->args->{plt});
@@ -233,6 +234,7 @@ sub existing_resource {
   
 
 }
+
 
 
 #resolves an input file relative to the nearest plt dir.

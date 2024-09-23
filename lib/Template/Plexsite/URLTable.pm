@@ -40,7 +40,8 @@ sub new {
 }
 
 
-#Adds a resource with input relative to project root
+#Adds a resource with input relative to project root (src dir). 
+#Absolute paths are converted into relative paths from project root.
 #Options gives output and mode
 #if input is a dir all items are added
 sub add_resource {
@@ -51,11 +52,22 @@ sub add_resource {
 
 	my $return;
 
+
+	my $path;
+  if($input=~m|^/|){
+    $input=abs2rel $input, $root;
+    say "Relateive path from abs input PLEXSITE";
+    say $input;
+  }
+
+  $path=$root."/".$input;
+
 	#Show warning if resource is already included
   #
 	if($table{$input}){
 		Log::OK::WARN and log_warn "Resource: input $input already exists in table. Skipping";
-		$return=$input;
+    say $table{$input}{output};
+		$return=$input;;#$input;
 		goto OUTPUT;
 		#return $input;
 	}
@@ -63,7 +75,6 @@ sub add_resource {
 	#TODO: add filter to options for restricting file types
 	
 
-	my $path=$root."/".$input;
 
 	#test if input actually exists
 	unless( -e $path){
@@ -120,7 +131,7 @@ sub add_resource {
 		my $in=$input;
 		$table{$in}=\%options;
 		Log::OK::INFO and log_info "Resource: Adding $in => $table{$in}{output}";
-		$return=$in;
+		$return=$in;#$options{output}//$in;
 		goto OUTPUT;
 	}
 
