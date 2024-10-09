@@ -66,7 +66,9 @@ if($create){
 	goto CREATE;
 }
 
-$locale||="en";
+# Locale is basically a prefix from the html_root....
+#
+$locale||="app/en";
 die "No html_root specified" unless $html_root;
 
 use Template::Plexsite::URLTable;
