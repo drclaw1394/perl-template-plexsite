@@ -6,7 +6,7 @@ MIN_PERL_VERSION	=> v5.36,
     PREREQ_PM         => {
 	    "Template::Plex"=>0.7.0,
 	    "Log::ger"=> 0,
-      "Logger::Output::Screen"=>0
+      "Log::ger::Output::Screen"=>0
 
     },
     EXE_FILES =>[
