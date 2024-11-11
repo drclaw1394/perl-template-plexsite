@@ -56,8 +56,8 @@ sub add_resource {
 	my $path;
   if($input=~m|^/|){
     $input=abs2rel $input, $root;
-    say "Relateive path from abs input PLEXSITE";
-    say $input;
+    say STDERR "Relateive path from abs input PLEXSITE";
+    say STDERR $input;
   }
 
   $path=$root."/".$input;
@@ -66,7 +66,7 @@ sub add_resource {
   #
 	if($table{$input}){
 		Log::OK::WARN and log_warn "Resource: input $input already exists in table. Skipping";
-    say $table{$input}{output};
+    say STDERR $table{$input}{output};
 		$return=$input;;#$input;
 		goto OUTPUT;
 		#return $input;
@@ -112,7 +112,10 @@ sub add_resource {
 		for(@inputs){
 			#strip root from working dir relative paths from globbing
       #s/^$root\///;
+      say STDERR "INPUT is: $_";
+      say STDERR "ROOT is: $_";
       $_=abs2rel $_, $root;
+      say STDERR "NEW INPUT is: $_";
 			my %opts=%options;
 			$opts{output}=$_;
 
