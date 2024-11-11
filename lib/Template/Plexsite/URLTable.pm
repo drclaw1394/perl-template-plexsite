@@ -14,7 +14,7 @@ use Template::Plex;
 use Template::Plexsite;
 
 use File::Basename qw<dirname basename>;
-use File::Spec::Functions qw<abs2rel>;
+use File::Spec::Functions qw<abs2rel rel2abs>;
 use File::Path qw<mkpath>;
 use File::Copy;
 #use Data::Dumper;
@@ -111,7 +111,8 @@ sub add_resource {
 		
 		for(@inputs){
 			#strip root from working dir relative paths from globbing
-			s/^$root\///;
+      #s/^$root\///;
+      $_=abs2rel $_, $root;
 			my %opts=%options;
 			$opts{output}=$_;
 
