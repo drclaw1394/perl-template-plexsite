@@ -17,9 +17,9 @@ use File::Basename qw<dirname basename>;
 use File::Spec::Functions qw<abs2rel>;
 use File::Path qw<mkpath>;
 use File::Copy;
-use Data::Dumper;
+#use Data::Dumper;
 
-use enum ("root_=0", qw<html_root_ table_ locale_ dir_table_ nav_ templates_>);
+use constant::more ("root_=0", qw<html_root_ table_ locale_ dir_table_ nav_ templates_>);
 
 sub new {
 	my $package=shift;
