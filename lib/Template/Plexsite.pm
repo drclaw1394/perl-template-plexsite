@@ -19,9 +19,9 @@ use File::Spec::Functions qw<catfile catdir abs2rel>;
 use File::Path qw<mkpath>;
 use Data::Dumper;
 
-use constant KEY_OFFSET=>Template::Plex::KEY_COUNT+Template::Plex::KEY_OFFSET;
-use enum ("dependencies_=".KEY_OFFSET,qw<locale_sub_template_ input_path_ output_path_>);
-use constant KEY_COUNT=> output_path_- dependencies_+1;
+use constant::more KEY_OFFSET=>Template::Plex::KEY_COUNT+Template::Plex::KEY_OFFSET;
+use constant::more ("dependencies_=".KEY_OFFSET,qw<locale_sub_template_ input_path_ output_path_>);
+use constant::more KEY_COUNT=> output_path_- dependencies_+1;
 
 
 # Resolves a plt dir path to the first index found in the plt dir. Root (src
