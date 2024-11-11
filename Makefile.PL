@@ -5,7 +5,7 @@ MIN_PERL_VERSION	=> v5.36,
     VERSION_FROM      => 'lib/Template/Plexsite.pm',
     PREREQ_PM         => {
       "constant::more" => 0,
-	    "Template::Plex"=>0.7.0,
+	    "Template::Plex"=>0.7.1,
 	    "Log::ger"=> 0,
       "Log::ger::Output::Screen"=>0
 
