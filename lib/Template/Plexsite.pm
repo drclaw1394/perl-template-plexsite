@@ -42,7 +42,8 @@ sub _first_index_path {
 		Log::OK::DEBUG and log_debug __PACKAGE__." testing for index at $root/$path";
 		($tpath)= < $root/$path/index.plex.*  $root/$path/index.plx.* $root/$path/index.*.plx $root/$path/index.*.plex >;
     Log::OK::DEBUG and log_debug "Found first path: $tpath";
-		$tpath =~ s|^$root/||;
+    #$tpath =~ s|^$root/||;
+    $tpath = abs2rel($tpath, $root);
 	}
 
   $tpath//=$path;
