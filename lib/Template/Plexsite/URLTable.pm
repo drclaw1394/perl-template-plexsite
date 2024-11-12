@@ -195,7 +195,8 @@ sub _add_template {
 	
 
 	#strip $root from glob result for inputs
-	my $src=$index_file=~s|^$root/||r;
+  #my $src=$index_file=~s|^$root/||r;
+  my $src=abs2rel($index_file, $root);
 
 	#strip plex $input and extension if present
 	#my $target=$src=~s/\.plex$|\.plx$//r;
