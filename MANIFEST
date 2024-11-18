@@ -14,4 +14,3 @@ script/build-menu.pl
 script/page.pl
 script/plexsite
 t/urltable.t
-Template-Plexsite-v0.1.0.tar.gz
