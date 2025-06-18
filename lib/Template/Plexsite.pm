@@ -142,7 +142,13 @@ sub load {
     }',
 		'sub lander {
 			$self->lander(@_);
-		}'
+		}',
+    'sub script {
+      $self->script(@_);
+    }',
+    'sub style{
+      $self->style(@_);
+    }'
 
 	];
 
@@ -396,6 +402,65 @@ sub lander {
 	
 }
 
+# Wrapper around immediate which  sets NOR =>1 if not existing
+# We only process if resouce hasn't already been used
+sub once {
+    my $path=pop;
+    my $tag=pop;
+    my ($self, %options)=@_;
+    #push @args, nor=>1;
+
+    my $output="";
+    my $url_table=$self->args->{table};
+    say STDERR "URL TABLE IS", Dumper $self->args->{table};
+
+    my $input=$url_table->normalize_input_path($path);
+    say STDERR "NORMALIZED SCRIPT PATH $input";
+    my $res=$url_table->resource_info($input);
+    say STDERR "Script resource info : ", Dumper $res;
+    my $render=undef;
+    if($res){
+      # resource has been used already in this table
+      # Do not include again unless forced
+     
+        $render=$options{force};
+    }
+    else {
+      $render=1;
+    }
+
+    if($render){
+      # First time use of resource (no currently added
+      $url_table->add_resource($input);
+      #$res=$url_table->resource_info($input);
+
+      my @pairs;
+      for my ($k,$v)(%options){
+        push @pairs, "$k=$v";
+      }
+
+      $output.="<$tag ".join(" ", @pairs).">";
+
+      $output.=$self->immediate($input);
+      $output.="</$tag>";
+    }
+    $output;
+}
+
+sub script {
+  my $self=shift;
+  my $path=pop;
+  push @_, "script", $path;
+  $self->once( @_);
+}
+
+sub style{
+  my $self=shift;
+  my $path=pop;
+  push @_, "style", $path;
+  $self->once(@_);
+}
+
 #Only works for plt templates
 # Like a load call, but uses the information about the locale to 
 # load a sub template
@@ -421,6 +486,7 @@ sub locale {
 			$self->[locale_sub_template_]=Template::Plex->load([""]);#, $self->args, $self->meta->%*);
 
 		}
+
 	}
 	else{
 		#Log::OK::WARN and log_warn __PACKAGE__." no file found for locale=>$lang_code";

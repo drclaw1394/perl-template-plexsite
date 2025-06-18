@@ -307,67 +307,69 @@ sub add_plt_resource {
 }
 
 #Relative to project root
-sub add_resource {
-	#add resource to the url table
-	my ($self, $input, $output)=@_;
-
-	my $url_table=$self->args->{url_table};
-	my $t_out=$self->args->{output};
-	#my $input_plt=$self->args->{input};
-	my $locale=$self->args->{locale};
-
-	#input is relative to template root
-	
-	#output if present is relative to output root
-		
-	#If output is not present, resource will be placed in sub dir of this template
-	
-
-	my $root=$self->meta->{root};
-
-	#Test if input is infact a dir
-	my $path=$root."/".$input;
-	
-	if(-d $path){
-		my @stack;
-		my @inputs;
-		#recursivy add resources
-		#
-		push @stack, $path;	
-	
-		while(@stack){
-			my $item=pop @stack;
-			Log::OK::DEBUG	 and log_debug "Plexsite: TESTING item  $item";
-			if( -d $item){
-				push @stack, <"$item/*">;
-			}
-			else {
-				push @inputs, $item;
-			}
-		}
-		
-		for(@inputs){
-			#strip root from working dir relative paths from globbing
-			s/^$root\///;
-
-			$url_table->@{$_}=($_);
-		}
-		@inputs;
-
-	}
-	else {
-		#Assume a file
-		#add to url table	
-		unless($output){
-			$output=$input; #$t_out->{location}."/".$input;
-		}
-
-		my $in=$input;
-		$url_table->@{$in}=($output);
-		$in;
-	}
-}
-
+###########################################################################################
+# sub add_resource {                                                                      #
+#         #add resource to the url table                                                  #
+#         my ($self, $input, $output)=@_;                                                 #
+#                                                                                         #
+#         my $url_table=$self->args->{url_table};                                         #
+#         my $t_out=$self->args->{output};                                                #
+#         #my $input_plt=$self->args->{input};                                            #
+#         my $locale=$self->args->{locale};                                               #
+#                                                                                         #
+#         #input is relative to template root                                             #
+#                                                                                         #
+#         #output if present is relative to output root                                   #
+#                                                                                         #
+#         #If output is not present, resource will be placed in sub dir of this template  #
+#                                                                                         #
+#                                                                                         #
+#         my $root=$self->meta->{root};                                                   #
+#                                                                                         #
+#         #Test if input is infact a dir                                                  #
+#         my $path=$root."/".$input;                                                      #
+#                                                                                         #
+#         if(-d $path){                                                                   #
+#                 my @stack;                                                              #
+#                 my @inputs;                                                             #
+#                 #recursivy add resources                                                #
+#                 #                                                                       #
+#                 push @stack, $path;                                                     #
+#                                                                                         #
+#                 while(@stack){                                                          #
+#                         my $item=pop @stack;                                            #
+#                         Log::OK::DEBUG   and log_debug "Plexsite: TESTING item  $item"; #
+#                         if( -d $item){                                                  #
+#                                 push @stack, <"$item/*">;                               #
+#                         }                                                               #
+#                         else {                                                          #
+#                                 push @inputs, $item;                                    #
+#                         }                                                               #
+#                 }                                                                       #
+#                                                                                         #
+#                 for(@inputs){                                                           #
+#                         #strip root from working dir relative paths from globbing       #
+#                         s/^$root\///;                                                   #
+#                                                                                         #
+#                         $url_table->@{$_}=($_);                                         #
+#                 }                                                                       #
+#                 @inputs;                                                                #
+#                                                                                         #
+#         }                                                                               #
+#         else {                                                                          #
+#                 #Assume a file                                                          #
+#                 #add to url table                                                       #
+#                 unless($output){                                                        #
+#                         $output=$input; #$t_out->{location}."/".$input;                 #
+#                 }                                                                       #
+#                                                                                         #
+#                 my $in=$input;                                                          #
+#                 $url_table->@{$in}=($output);                                           #
+#                 $in;                                                                    #
+#         }                                                                               #
+# }                                                                                       #
+#                                                                                         #
+###########################################################################################
 
 sub locale_code {
 	$_[0]->args->{locale};

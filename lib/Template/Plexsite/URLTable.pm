@@ -25,7 +25,7 @@ sub new {
 	my $package=shift;
 	my $self=[];
 	my %options=@_;
-	$self->[root_]=$options{src};
+	$self->[root_]=rel2abs($options{src});
 	$self->[html_root_]=$options{html_root};
 	$self->[table_]={};
 	$self->[locale_]=$options{locale};
@@ -37,6 +37,31 @@ sub new {
 	};
 
 	bless $self, $package;
+}
+
+
+#resources are always refered in unnormalized input form
+sub resource_info {
+  my ($self, $input)=@_;
+  $input=$self->normalize_input_path($input);
+  $self->[table_]->{$input}
+}
+
+
+# Normalise input path as a relative path from src
+sub normalize_input_path {
+  my($self, $input)=@_;
+
+	my $root=$self->[root_];
+	my $path;
+  if($input=~m|^/|){
+    $input=abs2rel $input, $root;
+    say STDERR "Relateive path from abs input PLEXSITE";
+    say STDERR $input;
+  }
+
+  #$path=$root."/".$input;
+  $input;
 }
 
 
@@ -53,21 +78,29 @@ sub add_resource {
 	my $return;
 
 
-	my $path;
-  if($input=~m|^/|){
-    $input=abs2rel $input, $root;
-    say STDERR "Relateive path from abs input PLEXSITE";
-    say STDERR $input;
-  }
+  ##########################################################
+  #       my $path;                                        #
+  # if($input=~m|^/|){                                     #
+  #   $input=abs2rel $input, $root;                        #
+  #   say STDERR "Relateive path from abs input PLEXSITE"; #
+  #   say STDERR $input;                                   #
+  # }                                                      #
+  #
+  #                                                        #
+  # $path=$root."/".$input;                                #
+  ##########################################################
 
-  $path=$root."/".$input;
-
+  say STDERR "INPUT BEFORE NORMAL $input";
+	$input=$self->normalize_input_path($input);
+  say STDERR "INPUT AFTER NORMAL $input";
+  my $path=$root."/".$input;                                #
+  say STDERR "PATH AFTER  $path";
 	#Show warning if resource is already included
   #
 	if($table{$input}){
 		Log::OK::WARN and log_warn "Resource: input $input already exists in table. Skipping";
     say STDERR $table{$input}{output};
-		$return=$input;;#$input;
+		$return=$input;#$input;
 		goto OUTPUT;
 		#return $input;
 	}
@@ -84,6 +117,7 @@ sub add_resource {
 
 	#Test if input is in fact a plain dir or a plt template
   #
+  say STDERR "PATH IS $path";
 	if(-d $path and $path =~ /plt$/){
 		$return=$self->_add_template($input, %options);
 		goto OUTPUT;
@@ -337,9 +371,10 @@ sub build {
 	my ($self)=@_;
 	
 
-	$self->_render_templates;
+	my $res=$self->_render_templates;
 	$self->_static_files;
 	$self->_site_map;
+  $res;
 }
 
 sub _site_map {
