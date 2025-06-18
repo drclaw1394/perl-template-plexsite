@@ -1,4 +1,8 @@
 Revision history for Perl extension Template::Plex.
+v0.1.2
+  [Fix]
+    - Normalize external paths relative to source dir
+
 v0.1.1
     [Fix]
       - Address missing files due to  incorrect filtering in MANIFEST.SKIP
