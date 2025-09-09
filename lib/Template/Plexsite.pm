@@ -63,6 +63,7 @@ sub new {
 sub inherit {
 	my $self=shift;
   my $tpath=$_[0]; 
+  my $root=$_[1]; 
 	unless($tpath){
 		Log::OK::INFO and log_info "undefined parent template. Disabling inheritance";
 		return;
@@ -70,7 +71,7 @@ sub inherit {
 
   # Plexsite can also use a plt directory as a parent. Here we need to resolve
   # to the first index.plex.* file located in the dir
-  my $root=$self->meta->{root};
+  $root//=$self->meta->{root};
   $tpath=$self->_first_index_path($tpath, $root);
 
 	#TODO: Check that output has been called
@@ -79,7 +80,7 @@ sub inherit {
 	unless($entry->{output}){
 		Log::OK::ERROR and log_error "inhert called before output in ". $self->args->{plt} ;
 	}
-	$self->SUPER::inherit($tpath);
+	$self->SUPER::inherit($tpath, $root);
 }
 
 # Locates the first index.*.plex file in a plt directory and loads it
@@ -412,7 +413,7 @@ sub once {
 
     my $output="";
     my $url_table=$self->args->{table};
-    say STDERR "URL TABLE IS", Dumper $self->args->{table};
+    #say STDERR "URL TABLE IS", Dumper $self->args->{table};
 
     my $input=$url_table->normalize_input_path($path);
     say STDERR "NORMALIZED SCRIPT PATH $input";
