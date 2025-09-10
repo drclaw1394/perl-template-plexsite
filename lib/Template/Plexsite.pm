@@ -160,17 +160,19 @@ sub load {
   # meta hasn't been set in Template::Plex::Internal  just yet.
   # 
 
-  #my %args_copy=%$args;
+  my $ref=$args;
   if(defined $meta->{root} and $root ne $meta->{root}){
     my $new_table=Template::Plexsite::URLTable->new(src=>$root, html_root=>$args->{html_root}, locale=>$args->{locale});
 
     # Link internal tables...
     $new_table->table = $args->{table}->table;
 
-    $args->{table}=$new_table;
+    my %args_copy=%$args;
+    $args_copy{table}=$new_table;
+    $ref=\%args_copy;
   }
 
-	my $template=$self->SUPER::load($tpath, $args, %l_options);
+	my $template=$self->SUPER::load($tpath, $ref, %l_options);
 	$template;
 }
 
