@@ -17,7 +17,6 @@ use File::Basename qw<dirname basename>;
 use File::Spec::Functions qw<abs2rel rel2abs>;
 use File::Path qw<mkpath>;
 use File::Copy;
-#use Data::Dumper;
 
 use constant::more ("root_=0", qw<html_root_ table_ locale_ dir_table_ nav_ templates_>);
 
@@ -147,7 +146,7 @@ sub add_resource {
 			#strip root from working dir relative paths from globbing
       #s/^$root\///;
       say STDERR "INPUT is: $_";
-      say STDERR "ROOT is: $_";
+      say STDERR "ROOT is: $root";
       $_=abs2rel $_, $root;
       say STDERR "NEW INPUT is: $_";
 			my %opts=%options;
@@ -164,6 +163,7 @@ sub add_resource {
 		#add to url table	
 		unless($options{output}){
 			$options{output}=$input; #$t_out->{location}."/".$input;
+      $options{root}=$root;
 		}
 
 		my $in=$input;
@@ -221,6 +221,7 @@ sub _add_template {
 
 		output=>"",		#main 
 		input=>$input,
+    root=>$root,
 	);
 
 	weaken $entry{template}{config}{table}; 
@@ -323,26 +324,25 @@ sub lookup {
 # If input is undefined, returns the relative "." path
 #
 sub map_input_to_output {
+  use feature ":all";
 	my ($self, $target, $reference)=@_;
   return "." unless $target;
 
+  #say STDERR "target $target, referece $reference";
 
   # remove any fragments for lookup
   my ($input, $frag1)=split "#", $target;
   my ($input_reference, $frag2)=split "#", $reference;
 
 
-
-
 	my $ref_entry=$self->table->{$reference};
 
 	my $output_reference=$ref_entry->{output};
-
 	my $input_entry=$self->table->{$input};
 	my $output=$input_entry->{output};
 
 	#make relative path from output  reference to output
-	my $o=abs2rel($output,dirname $output_reference);	
+	my $o=abs2rel($output, dirname $output_reference);	
   $o=$o."#".$frag1 if $frag1;
   $o;
 
@@ -383,7 +383,7 @@ sub _site_map {
 }
 sub _static_files {
 	my ($self)=@_;
-	my $root=$self->[root_];
+  #my $root=$self->[root_];
 	my $html_root=$self->[html_root_];
 
 	#Process only entries with no template
@@ -393,7 +393,8 @@ sub _static_files {
 		Log::OK::TRACE and log_trace __PACKAGE__." static files: processing $input";
 
 
-		$input=$root."/".$input;
+    my $root=$entry->{root};
+    $input=$root."/".$input;
 		my $output=$html_root."/".$entry->{output};
 
 		mkpath dirname $output;
@@ -428,7 +429,6 @@ sub _render_templates {
   # This gives accumulation type templates to work
 
   my @templates=$self->ordered_entries;
-  #use Data::Dumper;
 
 	#render all resources
   #for my $input (keys $self->[table_]->%*){
@@ -494,7 +494,7 @@ sub clear {
 	$_[0][table_]={};
 }
 
-sub table{
+sub table :lvalue{
 	$_[0][table_];
 }
 1;

@@ -74,8 +74,9 @@ sub inherit {
   $root//=$self->meta->{root};
   $tpath=$self->_first_index_path($tpath, $root);
 
+
 	#TODO: Check that output has been called
-	my $table=$self->args->{table}->table;
+  my $table=$self->args->{table}->table;
 	my $entry=$table->{$self->args->{plt}};
 	unless($entry->{output}){
 		Log::OK::ERROR and log_error "inhert called before output in ". $self->args->{plt} ;
@@ -99,6 +100,7 @@ sub load {
 
 	#Path can be to a plt dir. If so find the index file and  load it
 	my $tpath=$self->_first_index_path($path, $root);
+
 
 	#This is needed to make static class method work to load
 	my %l_options=$meta->%*;
@@ -152,6 +154,21 @@ sub load {
     }'
 
 	];
+
+  # Here we copy the args. Any references will still work, but we can override
+  # If the meta->{root} doesn't exist, its because its a top level load, and the
+  # meta hasn't been set in Template::Plex::Internal  just yet.
+  # 
+
+  #my %args_copy=%$args;
+  if(defined $meta->{root} and $root ne $meta->{root}){
+    my $new_table=Template::Plexsite::URLTable->new(src=>$root, html_root=>$args->{html_root}, locale=>$args->{locale});
+
+    # Link internal tables...
+    $new_table->table = $args->{table}->table;
+
+    $args->{table}=$new_table;
+  }
 
 	my $template=$self->SUPER::load($tpath, $args, %l_options);
 	$template;
@@ -332,7 +349,7 @@ sub output {
 	}
   #$output->{order}//=0;
 	#update the table entry
-	my $table=$self->args->{table}->table;
+  my $table=$self->args->{table}->table;
 	my $entry=$table->{$self->args->{plt}};
 	$entry->{output}=$self->output_path;
 }
@@ -351,7 +368,7 @@ sub navi {
   
 
   # URL table
-	my $table=$self->args->{table}->table;
+  my $table=$self->args->{table}->table;
 
   # Table entry
 	my $entry=$table->{$self->args->{plt}};
@@ -396,7 +413,7 @@ sub lander {
 	my $self=shift;
 	my %options=@_;
 
-	my $table=$self->args->{table}->table;
+  my $table=$self->args->{table}->table;
 	my $entry=$table->{$self->args->{plt}};
 	$entry->{lander}=\%options;
 
@@ -413,6 +430,7 @@ sub once {
 
     my $output="";
     my $url_table=$self->args->{table};
+
     #say STDERR "URL TABLE IS", Dumper $self->args->{table};
 
     my $input=$url_table->normalize_input_path($path);
@@ -504,7 +522,6 @@ sub build{
   my ($fields)=@_;
   
 	my $result=$self->SUPER::render(@_);
-
 
   #unless($fields->{no_file}){
     my $file=catfile $self->args->{html_root}, $self->output_path;
