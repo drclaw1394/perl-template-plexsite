@@ -12,7 +12,6 @@ use Log::OK {
 use Log::ger::Util;
 Log::ger::Util::set_level Log::OK::LEVEL;
 
-use Data::Dumper;
 
 use Getopt::Long;
 use File::Spec::Functions qw<rel2abs abs2rel catfile>;
@@ -71,6 +70,14 @@ if($create){
 $locale||="app/en";
 die "No html_root specified" unless $html_root;
 
+
+# Remove any jpack data, aswe prob don't want it
+# NOTE: REmove the old data before adding resources, which might automatically
+# add data during the init stage
+use File::Path qw<remove_tree>;
+remove_tree "$html_root/app/jpack";
+remove_tree "$html_root/css/jpack";
+
 use Template::Plexsite::URLTable;
 
 my $table=Template::Plexsite::URLTable->new(src=>$src, html_root=>$html_root, locale=>$locale);
@@ -96,7 +103,7 @@ else {
 	push @paths , $src;
 	while(@paths){
 		my $path=pop @paths;
-		#say "processing $path";
+		    say "processing $path";
 		if(-d $path){
 			my @new= < $path/*>;
 			push @paths, @new;
@@ -117,6 +124,7 @@ for my $lib (@libs){
 	$lib=abs2rel($lib, $src);
 	$table->add_resource($lib);
 }
+
 
 Log::OK::INFO and log_info "Rendering templates";
 $table->build;
