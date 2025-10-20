@@ -151,6 +151,7 @@ sub add_resource {
       say STDERR "NEW INPUT is: $_";
 			my %opts=%options;
 			$opts{output}=$_;
+      $opts{root}=$root;
 
 			$table{$_}=\%opts;
 		}
@@ -163,8 +164,8 @@ sub add_resource {
 		#add to url table	
 		unless($options{output}){
 			$options{output}=$input; #$t_out->{location}."/".$input;
-      $options{root}=$root;
 		}
+    $options{root}=$root;
 
 		my $in=$input;
 		$table{$in}=\%options;

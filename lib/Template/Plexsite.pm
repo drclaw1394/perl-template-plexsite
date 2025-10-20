@@ -17,7 +17,7 @@ our $VERSION="v0.1.2";
 use File::Basename qw<dirname basename>;
 use File::Spec::Functions qw<catfile catdir abs2rel>;
 use File::Path qw<mkpath>;
-use Data::Dumper;
+use Data::JPack;
 
 use constant::more KEY_OFFSET=>Template::Plex::KEY_COUNT+Template::Plex::KEY_OFFSET;
 use constant::more ("dependencies_=".KEY_OFFSET,qw<locale_sub_template_ input_path_ output_path_>);
@@ -68,6 +68,11 @@ sub inherit {
 		Log::OK::INFO and log_info "undefined parent template. Disabling inheritance";
 		return;
 	}
+
+  if($tpath=~/::/){
+    eval "require $tpath";
+    ($tpath, $root)= $tpath->template_path;
+  }
 
   # Plexsite can also use a plt directory as a parent. Here we need to resolve
   # to the first index.plex.* file located in the dir
@@ -252,7 +257,6 @@ sub existing_resource {
   my $root=$self->args->{html_root};
   my $target="/".$root."/".$path;
   
-  use Data::Dumper;
   # Get the output location of this template
   my $ref="/".$root."/".$self->output_path;
 
@@ -433,12 +437,10 @@ sub once {
     my $output="";
     my $url_table=$self->args->{table};
 
-    #say STDERR "URL TABLE IS", Dumper $self->args->{table};
 
     my $input=$url_table->normalize_input_path($path);
     say STDERR "NORMALIZED SCRIPT PATH $input";
     my $res=$url_table->resource_info($input);
-    say STDERR "Script resource info : ", Dumper $res;
     my $render=undef;
     if($res){
       # resource has been used already in this table
@@ -475,11 +477,58 @@ sub script {
   $self->once( @_);
 }
 
+# Pack
+sub pack_scripts {
+  my $self=shift;
+  my @inputs=@_;
+  my $html_container=$self->sys_path_build;
+
+  # Given the html_container encode the js and resource files into the next available position
+  #
+  my $jpack=Data::JPack->new(jpack_compression=>"DEFLATE", jpack_type=>"app", html_container=>$html_container);
+  $jpack->set_prefix("app/jpack/main");
+
+  my @outputs;
+  for(@inputs){
+    my $out_path=$jpack->next_file_name($_);
+    next unless $out_path;
+
+    say STDERR "OUTPUT PATH IS $out_path";
+
+    $jpack->encode_file($_, $out_path);
+    push @outputs, $out_path;    #
+  }
+  @outputs;
+}
+
 sub style{
   my $self=shift;
   my $path=pop;
   push @_, "style", $path;
   $self->once(@_);
+}
+
+sub pack_styles {
+  my $self=shift;
+  my @inputs=@_;
+  my $html_container=$self->sys_path_build;
+
+  # Given the html_container encode the js and resource files into the next available position
+  #
+  my $jpack=Data::JPack->new(jpack_compression=>"DEFLATE", jpack_type=>"app", html_container=>$html_container);
+  $jpack->set_prefix("app/jpack/css");
+
+  my @outputs;
+  for(@inputs){
+    my $out_path=$jpack->next_file_name($_);
+    next unless $out_path;
+
+    say STDERR "OUTPUT PATH IS $out_path";
+
+    $jpack->encode_file($_,$out_path);
+    push @outputs, $out_path;    #
+  }
+  @outputs;
 }
 
 #Only works for plt templates
