@@ -89,6 +89,19 @@ sub inherit {
 	$self->SUPER::inherit($tpath, $root);
 }
 
+sub inject {
+	my $self=shift;
+  my $package=$_[0]; 
+  my $root=$_[1]; 
+
+  my $tpath;
+  if($package=~/::/){
+    eval "require $package";
+    ($tpath, $root)= $package->template_path;
+  }
+  $package->add_to_container($self);
+}
+
 # Locates the first index.*.plex file in a plt directory and loads it
 # as the body of the plt template.
 #
@@ -156,6 +169,9 @@ sub load {
     }',
     'sub style{
       $self->style(@_);
+    }',
+    'sub inject{
+      $self->inject(@_);
     }'
 
 	];
@@ -212,14 +228,14 @@ sub no_locale_out{
 #This is most useful when a template renders other templates as content instead of links
 #
 sub add_resource {
-	my ($self, $input, @options)=@_;
+	my ($self, $input, %options)=@_;
 	#use the URLTable object in args 	
-	my $table=$self->args->{table};
-	$input=$table->add_resource($input, @options);
+	my $table=$options{table}//$self->args->{table};
+	my @input=$table->add_resource($input, %options);
 	
 	#return the output relative path directly
-	my $path=$table->map_input_to_output($input, $self->args->{target}//$self->args->{plt});
-	return $path;
+	my @path=map {$table->map_input_to_output($_, $self->args->{target}//$self->args->{plt})} @input;
+	return @path;
 
 		
 }
@@ -529,6 +545,12 @@ sub pack_styles {
     push @outputs, $out_path;    #
   }
   @outputs;
+}
+
+
+sub table :lvalue {
+  my ($self)=@_;
+  $self->args->{table}
 }
 
 #Only works for plt templates

@@ -18,7 +18,7 @@ use File::Spec::Functions qw<abs2rel rel2abs>;
 use File::Path qw<mkpath>;
 use File::Copy;
 
-use constant::more ("root_=0", qw<html_root_ table_ locale_ dir_table_ nav_ templates_>);
+use constant::more ("root_=0", qw<html_root_ table_ locale_ dir_table_ nav_ templates_ ordered_>);
 
 sub new {
 	my $package=shift;
@@ -34,6 +34,7 @@ sub new {
 			href=>undef,
 		}
 	};
+  $self->[ordered_]=[];
 
 	bless $self, $package;
 }
@@ -69,6 +70,7 @@ sub normalize_input_path {
 #Options gives output and mode
 #if input is a dir all items are added
 sub add_resource {
+  state $seq=0;
 	my ($self, $input, %options)=@_;
 	
 	my $root=$self->[root_];
@@ -122,12 +124,13 @@ sub add_resource {
 		goto OUTPUT;
 
 	}
-	elsif(-d $path){
+  #elsif(-d $path){
+  else{
 		my @stack;
 		my @inputs;
 		#recursivy add resources
 		#
-		push @stack, $path;	
+		push @stack, $input;	
 	
 		#TODO: need to check that the file does not represent a html template
 		while(@stack){
@@ -143,15 +146,28 @@ sub add_resource {
 		}
 		
 		for(@inputs){
+
+      
 			#strip root from working dir relative paths from globbing
       #s/^$root\///;
       say STDERR "INPUT is: $_";
       say STDERR "ROOT is: $root";
-      $_=abs2rel $_, $root;
+      #$_=abs2rel $_, $root;
       say STDERR "NEW INPUT is: $_";
 			my %opts=%options;
-			$opts{output}=$_;
+      $opts{static}{config}{output}{order}=$seq++;
+
+      # Use forced output path if specified
+      unless($options{output}){
+			  $opts{output}=$_;
+      }
+
       $opts{root}=$root;
+
+      #TODO: based on processing confiration, match inputs to processing database and add any filters the table entry
+      # $options{filter}//=DB->match ($_);
+      # If no filter specified filter is copy by default
+      # $options{filter}//={filter=>sub { copy }, inline=> 0}
 
 			$table{$_}=\%opts;
 		}
@@ -159,23 +175,36 @@ sub add_resource {
 		goto OUTPUT;
 
 	}
-	else {
-		#Assume a file
-		#add to url table	
-		unless($options{output}){
-			$options{output}=$input; #$t_out->{location}."/".$input;
-		}
-    $options{root}=$root;
-
-		my $in=$input;
-		$table{$in}=\%options;
-		Log::OK::INFO and log_info "Resource: Adding $in => $table{$in}{output}";
-		$return=$in;#$options{output}//$in;
-		goto OUTPUT;
-	}
+    #########################################################################################
+    #     else {                                                                            #
+    #             #Assume a file                                                            #
+    #             #add to url table                                                         #
+    #             unless($options{output}){                                                 #
+    #                     $options{output}=$input; #$t_out->{location}."/".$input;          #
+    #             }                                                                         #
+    # $options{root}=$root;                                                                 #
+    #                                                                                       #
+    #             my $in=$input;                                                            #
+    #             $table{$in}=\%options;                                                    #
+    #             Log::OK::INFO and log_info "Resource: Adding $in => $table{$in}{output}"; #
+    #             $return=$in;#$options{output}//$in;                                       #
+    #             goto OUTPUT;                                                              #
+    #     }                                                                                 #
+    #########################################################################################
 
 	OUTPUT:
+     
+  ##############################################
+  # use Data::Dumper;                          #
+  #   say STDERR "RETURN IS: ".Dumper $return; #
+  #   say STDERR "";                           #
+  ##############################################
 		if(ref($return) eq "ARRAY"){
+      ##########################
+      # if($return->@*==1){    #
+      #   return $return->[0]; #
+      # }                      #
+      ##########################
 			return $return->@*;
 		}
 		return $return 
@@ -340,6 +369,12 @@ sub map_input_to_output {
 
 	my $output_reference=$ref_entry->{output};
 	my $input_entry=$self->table->{$input};
+
+  #TODO: check the processing options. 
+  # If inline is specified, it will return content of file not a path immediately
+  # If a filter is specified, inline data will be run through a filter an returned immediately
+  #
+  # If NOT inline (normal), the output path calculated alread will be returned. The contents will copied / filtered at build
 	my $output=$input_entry->{output};
 
 	#make relative path from output  reference to output
@@ -372,8 +407,12 @@ sub build {
 	my ($self)=@_;
 	
 
+  say STDERR "+++++BeFORE RENDER TEMPLATES";
 	my $res=$self->_render_templates;
+  say STDERR "+++++AFTER RENDER TEMPLATES";
+  
 	$self->_static_files;
+  say STDERR "+++++AFTER STATIC FILES";
 	$self->_site_map;
   $res;
 }
@@ -387,8 +426,17 @@ sub _static_files {
   #my $root=$self->[root_];
 	my $html_root=$self->[html_root_];
 
+  my @ordered=sort {$self->[table_]{$a}{static}{config}{output}{order} <=> $self->[table_]{$b}{static}{config}{output}{order}} keys $self->[table_]->%*;
+
+
+  my $jpack=Data::JPack->new(jpack_compression=>"DEFLATE", jpack_type=>"app", html_container=>$html_root);
+
 	#Process only entries with no template
-	for my $input (keys $self->[table_]->%*){
+  #for my $input (keys $self->[table_]->%*){
+  for my $input (@ordered){
+    say STDERR "";
+    say STDERR "=--- Processing $input";
+    say STDERR "";
 		my $entry=$self->[table_]{$input};
 		next if $entry->{template};
 		Log::OK::TRACE and log_trace __PACKAGE__." static files: processing $input";
@@ -406,10 +454,42 @@ sub _static_files {
 			Log::OK::WARN and log_warn "Could not locate input: $input";
 			next;
 		}
+      my $filter=$entry->{static}{config}{output}{filter};
+      #use Data::Dumper;
+      #say STDERR Dumper $entry->{static}{config}{output}{filter};
 
-		if(!$stat_out[9] or $stat_out[9] < $stat_in[9]){
+      #say STDERR Dumper @stat_out;
+		if($filter or !$stat_out[9] or $stat_out[9] < $stat_in[9]){
+
+      # Do filter here
+      if($filter->{"name"} eq "jpack"){
+			Log::OK::INFO and log_info("JPACK filter $input");
+        #$self->_jpack($filter); 
+        # Set prefix
+        my $prefix=$filter->{prefix};
+        unless($prefix){
+          if($input=~/\.css$/){
+            $prefix="app/jpack/css";
+          }
+          elsif($input=~/\.js$/){
+            $prefix="app/jpack/main";
+          }
+        }
+        $jpack->set_prefix($prefix);
+        my $output=$jpack->next_file_name($input);
+        say STDERR "NEXT FILT NAME $output";
+        $jpack->encode_file($input, $output);
+
+           
+
+      }
+      else {
 			Log::OK::INFO and log_info("COPY $input=> $output");
-			copy $input, $output;
+			  copy $input, $output;
+      }
+
+
+
 		}
 		else {
 			Log::OK::DEBUG and log_debug("Upto date: $input=> $output");
@@ -418,6 +498,12 @@ sub _static_files {
 
 	}
 	
+}
+
+sub _jpack {
+  my ($self, $filter)=@_;
+
+  
 }
 
 #Work all template resources
