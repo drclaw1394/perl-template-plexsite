@@ -293,8 +293,14 @@ sub add_plt_resource {
 	while($plt_dir ne "." and basename($plt_dir)!~/plt$/){
 		$plt_dir=dirname $plt_dir;
 	}
-	$options{output}=catfile dirname($self->output_path), $input;
-	my $plt_input= catfile($plt_dir,$input);
+ 
+  my $output_path=$self->output_path;
+  if(substr($output_path,-1) eq "/"){
+    $output_path.="a";
+  }
+	$options{output}=catfile dirname($output_path), $input;
+	my $plt_input= catfile($plt_dir, $input);
+  say STDERR "---ADDING PLT RES ", $plt_input;
 	$self->add_resource(
 		$plt_input,
 		%options
@@ -332,22 +338,43 @@ sub output_path {
 	\my %config = $self->args;
 	return unless $config{output};	 #no output path when no output setup
 
-	my $name=$config{output}{name};
-	unless($name){
-		#No explict output name so use the basename of input
-		#without any plex suffix
-		$name =basename $self->meta->{file};
-		$name=~s/\.plex$|\.plx$//;  #Ending in plex/plx extension
-		$name=~s/(?:\.plex|\.plx)(?=\.)//;  #Not ending in plex/plx extension
-	}
+	my $name;
+  if($config{output}{inline}){
+    # For dynamic inline templatest, we refer to the output namespace directory
+    #$name="/";
+  }
+  else {
+    # For normal static files we refer to the file in the output namespace directory
+    $name=$config{output}{name};
+
+
+    unless($name){
+      #No explict output name so use the basename of input
+      #without any plex suffix
+      $name =basename $self->meta->{file};
+      $name=~s/\.plex$|\.plx$//;  #Ending in plex/plx extension
+      $name=~s/(?:\.plex|\.plx)(?=\.)//;  #Not ending in plex/plx extension
+    }
+  }
 
   my $no_locale=$config{output}{no_locale};
 	my @comps=( 
     $no_locale?():($config{locale}//()),   #add locale only if we want it
     $config{output}{location}||(),                     #If no location ensure an empty list
                                                         #to force root
-    $name);
+    );
+
 	my $path=catfile @comps;
+  if($name){
+    $path=catfile $path, $name;
+  }
+  else {
+    $path.="/";
+  }
+
+  say STDERR "is inline?",$config{output}{inline};
+  say STDERR "=-===== OUTPUT_path is $path";
+  $path;
 }
 
 
@@ -596,7 +623,8 @@ sub build{
   
 	my $result=$self->SUPER::render(@_);
 
-  #unless($fields->{no_file}){
+  # Only generate a file if we want it
+  unless($self->args->{output}{inline}){
     my $file=catfile $self->args->{html_root}, $self->output_path;
     mkpath dirname $file;		#make dir for output
 
@@ -624,7 +652,7 @@ sub build{
       $lander->{name}//="index.lander";
       $lander->{type}//="refresh";
 
-      
+
       my $html_root=$self->args->{html_root};
       my $link=catfile($html_root, $lander->{location}, $lander->{name});
 
@@ -639,9 +667,9 @@ sub build{
           open my $fh, ">", $link;
           print $fh qq|
           <html>
-            <head>
-              <meta http-equiv="refresh" content="0; url=@{[$self->output_path]}">
-            </head>
+          <head>
+          <meta http-equiv="refresh" content="0; url=@{[$self->output_path]}">
+          </head>
           </html>
           |;
 
@@ -656,8 +684,15 @@ sub build{
         }
       }
     }
-    #}
-  $result;
+  }
+
+  if($self->args->{output}{inline}){
+    # return the kv pairs, inputpath, and string result
+    return ($self->args->{plt}, $result);
+  }
+  else {
+    return ();
+  }
 }
 
 

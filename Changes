@@ -1,8 +1,9 @@
 Revision history for Perl extension Template::Plex.
 v0.1.3
-  [improvements]
+  [Features]
   - Add supports for inhertiting of templates via use of a package name
   - Update to use Tempalte::Plex v0.9.4
+  - Inline rendering option
     
 v0.1.2
   [Fix]

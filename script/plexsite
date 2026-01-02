@@ -83,13 +83,16 @@ use Template::Plexsite::URLTable;
 my $table=Template::Plexsite::URLTable->new(src=>$src, html_root=>$html_root, locale=>$locale);
 
 #say "Remainder : ", @ARGV;
-
+my $main;
 if(@ARGV){
 	#Any remaining arguments are explicit templates to add
 	#Paths are made relative to src
 	Log::OK::INFO and log_info "Adding arguments";
 	for my $path (@ARGV){
 		$path=abs2rel($path, $src);
+
+    $main//=$path;  # Save the first one
+
 		#say "adding $path";
 		$table->add_resource($path);
 	}
@@ -127,7 +130,10 @@ for my $lib (@libs){
 
 
 Log::OK::INFO and log_info "Rendering templates";
-$table->build;
+my %res=$table->build;;
+
+# Print out the main one
+say $res{$main};
 
 exit;
 

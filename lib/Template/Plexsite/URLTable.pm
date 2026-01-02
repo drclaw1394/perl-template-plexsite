@@ -263,9 +263,6 @@ sub _add_template {
   #my $src=$index_file=~s|^$root/||r;
   my $src=abs2rel($index_file, $root);
 
-	#strip plex $input and extension if present
-	#my $target=$src=~s/\.plex$|\.plx$//r;
-	#$target=~s|$input/||;
 
 	#Alias %config
 	\my %config=$entry{template}{config};
@@ -275,19 +272,18 @@ sub _add_template {
 	#Inputs are dirs with plt extensions. A index.html page exists inside
 	my $template=Template::Plexsite->load($input, \%config, %opts);
 
-	#If Output variable is set, we can add it to the list
-	if(defined $config{output}{location}){
-			
-		#add entry to output file table
-		#$entry{output}=$config{locale}."/".$config{output}{location}."/".$target;
-
 		$entry{template}{template}=$template;
-		#$entry{output}=$template->output_path;
 		return $input;
-	}
-	else {
-		#say "LOCATION NOT SET for ",$src;
-	}
+	#If Output variable is set, we can add it to the list
+        #################################################
+        # if(defined $config{output}{location}){        #
+        #         $entry{template}{template}=$template; #
+        #         return $input;                        #
+        # }                                             #
+        # else {                                        #
+        #         #say "LOCATION NOT SET for ",$src;    #
+        # }                                             #
+        #################################################
 
 	return undef;
 }
@@ -357,6 +353,8 @@ sub map_input_to_output {
   use feature ":all";
 	my ($self, $target, $reference)=@_;
   return "." unless $target;
+  say STDERR "target: $target";
+  say STDERR "reference: $reference";
 
   #say STDERR "target $target, referece $reference";
 
@@ -368,6 +366,8 @@ sub map_input_to_output {
 	my $ref_entry=$self->table->{$reference};
 
 	my $output_reference=$ref_entry->{output};
+  say STDERR "Refernce  in output space", $output_reference;
+
 	my $input_entry=$self->table->{$input};
 
   #TODO: check the processing options. 
@@ -376,9 +376,20 @@ sub map_input_to_output {
   #
   # If NOT inline (normal), the output path calculated alread will be returned. The contents will copied / filtered at build
 	my $output=$input_entry->{output};
-
+  say STDERR "res in output space", $output;
 	#make relative path from output  reference to output
+  if(substr($output_reference , -1)  eq '/'){
+    # Randome value appended to make dirname work as expected
+    $output_reference.="a";
+  }
 	my $o=abs2rel($output, dirname $output_reference);	
+
+  # force a slash if arguments contain a slash
+  if(substr($output,-1) eq "/"){
+    $o.="/";
+  }
+
+  say STDERR "relative", $o;
   $o=$o."#".$frag1 if $frag1;
   $o;
 
@@ -404,17 +415,17 @@ sub build {
 	
 	#if render field is a sub, it is called with the entry for processing
 	#ie this could be a template
-	my ($self)=@_;
+	my ($self, $main)=@_;
 	
 
   say STDERR "+++++BeFORE RENDER TEMPLATES";
-	my $res=$self->_render_templates;
+	my @res=$self->_render_templates;
   say STDERR "+++++AFTER RENDER TEMPLATES";
   
 	$self->_static_files;
   say STDERR "+++++AFTER STATIC FILES";
 	$self->_site_map;
-  $res;
+  @res;
 }
 
 sub _site_map {
@@ -506,10 +517,13 @@ sub _jpack {
   
 }
 
+
 #Work all template resources
 # Does a lookup on the permuted output dirs
 sub _render_templates {
 	my ($self)=@_;
+  my @inline_results;
+
 	Log::OK::TRACE and log_trace "URLTable: _render_templates";
 
   # Sort the templates by relative rendering order of output
@@ -528,7 +542,7 @@ sub _render_templates {
         #Log::OK::INFO and log_info "Rendering template $input  => ".$template->output_path;
         Log::OK::INFO and log_info "Rendering template   => ".$template->output_path;
 
-        $template->build;
+        push @inline_results, $template->build;
       }
       else {
         Log::OK::INFO and log_info "No output location for template $entry->{template}{config}{plt}. Ignoring";
@@ -540,6 +554,7 @@ sub _render_templates {
 			Log::OK::ERROR and log_error $e;
 		};
 	}
+  @inline_results;
 }
 
 # Sort template entries by the specified render order
