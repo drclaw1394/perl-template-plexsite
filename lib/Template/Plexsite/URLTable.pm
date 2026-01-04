@@ -56,8 +56,8 @@ sub normalize_input_path {
 	my $path;
   if($input=~m|^/|){
     $input=abs2rel $input, $root;
-    say STDERR "Relateive path from abs input PLEXSITE";
-    say STDERR $input;
+    #say STDERR "Relateive path from abs input PLEXSITE";
+    #say STDERR $input;
   }
 
   #$path=$root."/".$input;
@@ -79,31 +79,18 @@ sub add_resource {
 	my $return;
 
 
-  ##########################################################
-  #       my $path;                                        #
-  # if($input=~m|^/|){                                     #
-  #   $input=abs2rel $input, $root;                        #
-  #   say STDERR "Relateive path from abs input PLEXSITE"; #
-  #   say STDERR $input;                                   #
-  # }                                                      #
-  #
-  #                                                        #
-  # $path=$root."/".$input;                                #
-  ##########################################################
 
-  say STDERR "INPUT BEFORE NORMAL $input";
+  #say STDERR "INPUT BEFORE NORMAL $input";
 	$input=$self->normalize_input_path($input);
-  say STDERR "INPUT AFTER NORMAL $input";
+  #say STDERR "INPUT AFTER NORMAL $input";
   my $path=$root."/".$input;                                #
-  say STDERR "PATH AFTER  $path";
+  #say STDERR "PATH AFTER  $path";
 	#Show warning if resource is already included
   #
 	if($table{$input}){
-		Log::OK::WARN and log_warn "Resource: input $input already exists in table. Skipping";
-    say STDERR $table{$input}{output};
-		$return=$input;#$input;
+    Log::OK::DEBUG and log_debug "Resource: input $input already exists in table";
+		$return=$input;
 		goto OUTPUT;
-		#return $input;
 	}
 
 	#TODO: add filter to options for restricting file types
@@ -112,13 +99,13 @@ sub add_resource {
 
 	#test if input actually exists
 	unless( -e $path){
-		Log::OK::WARN and log_warn __PACKAGE__." Resource: input $path does not exist.";
+		Log::OK::ERROR and log_error __PACKAGE__." Resource: input $path does not exist.";
 		return undef;
 	}
 
 	#Test if input is in fact a plain dir or a plt template
   #
-  say STDERR "PATH IS $path";
+  #say STDERR "PATH IS $path";
 	if(-d $path and $path =~ /plt$/){
 		$return=$self->_add_template($input, %options);
 		goto OUTPUT;
@@ -149,11 +136,6 @@ sub add_resource {
 
       
 			#strip root from working dir relative paths from globbing
-      #s/^$root\///;
-      say STDERR "INPUT is: $_";
-      say STDERR "ROOT is: $root";
-      #$_=abs2rel $_, $root;
-      say STDERR "NEW INPUT is: $_";
 			my %opts=%options;
       $opts{static}{config}{output}{order}=$seq++;
 
@@ -353,10 +335,7 @@ sub map_input_to_output {
   use feature ":all";
 	my ($self, $target, $reference)=@_;
   return "." unless $target;
-  say STDERR "target: $target";
-  say STDERR "reference: $reference";
 
-  #say STDERR "target $target, referece $reference";
 
   # remove any fragments for lookup
   my ($input, $frag1)=split "#", $target;
@@ -366,7 +345,6 @@ sub map_input_to_output {
 	my $ref_entry=$self->table->{$reference};
 
 	my $output_reference=$ref_entry->{output};
-  say STDERR "Refernce  in output space", $output_reference;
 
 	my $input_entry=$self->table->{$input};
 
@@ -376,7 +354,7 @@ sub map_input_to_output {
   #
   # If NOT inline (normal), the output path calculated alread will be returned. The contents will copied / filtered at build
 	my $output=$input_entry->{output};
-  say STDERR "res in output space", $output;
+
 	#make relative path from output  reference to output
   if(substr($output_reference , -1)  eq '/'){
     # Randome value appended to make dirname work as expected
@@ -389,7 +367,6 @@ sub map_input_to_output {
     $o.="/";
   }
 
-  say STDERR "relative", $o;
   $o=$o."#".$frag1 if $frag1;
   $o;
 
@@ -415,15 +392,13 @@ sub build {
 	
 	#if render field is a sub, it is called with the entry for processing
 	#ie this could be a template
-	my ($self, $main)=@_;
+	my $self=shift;
+  my $main=shift;
 	
 
-  say STDERR "+++++BeFORE RENDER TEMPLATES";
-	my @res=$self->_render_templates;
-  say STDERR "+++++AFTER RENDER TEMPLATES";
+	my @res=$self->_render_templates(@_);
   
 	$self->_static_files;
-  say STDERR "+++++AFTER STATIC FILES";
 	$self->_site_map;
   @res;
 }
@@ -445,12 +420,9 @@ sub _static_files {
 	#Process only entries with no template
   #for my $input (keys $self->[table_]->%*){
   for my $input (@ordered){
-    say STDERR "";
-    say STDERR "=--- Processing $input";
-    say STDERR "";
 		my $entry=$self->[table_]{$input};
 		next if $entry->{template};
-		Log::OK::TRACE and log_trace __PACKAGE__." static files: processing $input";
+		Log::OK::INFO and log_info __PACKAGE__." static files: processing $input";
 
 
     my $root=$entry->{root};
@@ -462,14 +434,12 @@ sub _static_files {
 		my @stat_in=stat $input;
 		my @stat_out=stat $output;
 		unless(@stat_in){
-			Log::OK::WARN and log_warn "Could not locate input: $input";
+			Log::OK::ERROR and log_error "Could not locate input: $input";
 			next;
 		}
       my $filter=$entry->{static}{config}{output}{filter};
       #use Data::Dumper;
-      #say STDERR Dumper $entry->{static}{config}{output}{filter};
 
-      #say STDERR Dumper @stat_out;
 		if($filter or !$stat_out[9] or $stat_out[9] < $stat_in[9]){
 
       # Do filter here
@@ -521,7 +491,7 @@ sub _jpack {
 #Work all template resources
 # Does a lookup on the permuted output dirs
 sub _render_templates {
-	my ($self)=@_;
+	my $self=shift;
   my @inline_results;
 
 	Log::OK::TRACE and log_trace "URLTable: _render_templates";
@@ -539,10 +509,9 @@ sub _render_templates {
 		try {
 			my $template=$entry->{template}{template};
       if(defined $template){
-        #Log::OK::INFO and log_info "Rendering template $input  => ".$template->output_path;
-        Log::OK::INFO and log_info "Rendering template   => ".$template->output_path;
+        Log::OK::DEBUG and log_debug "Rendering template   => ".$template->output_path;
 
-        push @inline_results, $template->build;
+        push @inline_results, $template->build(@_);
       }
       else {
         Log::OK::INFO and log_info "No output location for template $entry->{template}{config}{plt}. Ignoring";

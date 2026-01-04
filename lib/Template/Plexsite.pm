@@ -300,7 +300,7 @@ sub add_plt_resource {
   }
 	$options{output}=catfile dirname($output_path), $input;
 	my $plt_input= catfile($plt_dir, $input);
-  say STDERR "---ADDING PLT RES ", $plt_input;
+  #say STDERR "---ADDING PLT RES ", $plt_input;
 	$self->add_resource(
 		$plt_input,
 		%options
@@ -372,8 +372,8 @@ sub output_path {
     $path.="/";
   }
 
-  say STDERR "is inline?",$config{output}{inline};
-  say STDERR "=-===== OUTPUT_path is $path";
+  #say STDERR "is inline?",$config{output}{inline};
+  #say STDERR "=-===== OUTPUT_path is $path";
   $path;
 }
 
@@ -619,7 +619,6 @@ sub locale {
 
 sub build{
 	my $self=shift;
-  my ($fields)=@_;
   
 	my $result=$self->SUPER::render(@_);
 
