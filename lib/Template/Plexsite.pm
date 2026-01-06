@@ -284,22 +284,20 @@ sub existing_resource {
 
 
 
-#resolves an input file relative to the nearest plt dir.
-#Sets up the output so it is also relative to the output dir
+# Adds a resourse relative to the currnet template (plt)
+# Output is set relativet to output location of plt by default
 sub add_plt_resource {
 	my ($self, $input, %options)=@_;
-	#input is relative to the closes plt dir
-	my $plt_dir=$self->[input_path_];
-	while($plt_dir ne "." and basename($plt_dir)!~/plt$/){
-		$plt_dir=dirname $plt_dir;
-	}
- 
+
+  my $plt_input=$self->plt_path($input);
+
   my $output_path=$self->output_path;
   if(substr($output_path,-1) eq "/"){
     $output_path.="a";
   }
+
 	$options{output}=catfile dirname($output_path), $input;
-	my $plt_input= catfile($plt_dir, $input);
+
   #say STDERR "---ADDING PLT RES ", $plt_input;
 	$self->add_resource(
 		$plt_input,
@@ -308,23 +306,17 @@ sub add_plt_resource {
 	
 }
 
-# Path to a file inside a plt template. DOES NOT ADD AS RESOURCE
+# Path to a file relative to a plt template (dir). DOES NOT ADD AS RESOURCE
 sub plt_path {
-	my ($self, $input, %options)=@_;
+	my ($self, $input)=@_;
 	#input is relative to the closes plt dir
 	my $plt_dir=$self->[input_path_];
 	while($plt_dir ne "." and basename($plt_dir)!~/plt$/){
 		$plt_dir=dirname $plt_dir;
 	}
-	$options{output}=catfile dirname($self->output_path), $input;
+
+  #$options{output}=catfile dirname($output_path), $input;
 	my $plt_input= catfile($plt_dir,$input);
-        ########################
-        # $self->add_resource( #
-        #         $plt_input,  #
-        #         %options     #
-        # );                   #
-        ########################
-	
 }
 
 
