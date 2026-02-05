@@ -2,6 +2,7 @@ Revision history for Perl extension Template::Plex.
 v0.1.4
   [features]
     - Added delegate field
+    - Added inline_only output option
 
 v0.1.3
   [Features]
