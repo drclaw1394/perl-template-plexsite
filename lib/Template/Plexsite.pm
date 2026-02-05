@@ -13,7 +13,7 @@ no warnings "experimental";
 #use Template::Plex::Internal;
 use parent "Template::Plex";
 
-our $VERSION="v0.1.3";
+our $VERSION="v0.1.4";
 use File::Basename qw<dirname basename>;
 use File::Spec::Functions qw<catfile catdir abs2rel>;
 use File::Path qw<mkpath>;
@@ -183,7 +183,7 @@ sub load {
 
   my $ref=$args;
   if(defined $meta->{root} and $root ne $meta->{root}){
-    my $new_table=Template::Plexsite::URLTable->new(src=>$root, html_root=>$args->{html_root}, locale=>$args->{locale});
+    my $new_table=Template::Plexsite::URLTable->new(src=>$root, html_root=>$args->{html_root}, locale=>$args->{locale},context=>$args->{context});
 
     # Link internal tables...
     $new_table->table = $args->{table}->table;
@@ -331,7 +331,7 @@ sub output_path {
 	return unless $config{output};	 #no output path when no output setup
 
 	my $name;
-  if($config{output}{inline}){
+  if($config{output}{inline_only}){
     # For dynamic inline templatest, we refer to the output namespace directory
     #$name="/";
   }
@@ -613,9 +613,11 @@ sub build{
 	my $self=shift;
   
 	my $result=$self->SUPER::render(@_);
-
-  # Only generate a file if we want it
-  unless($self->args->{output}{inline}){
+  
+  say STDERR __PACKAGE__." build called.", join ", ", $self->args->{output}->%*;
+  # Generate the file at output location if no inline_only
+  #
+  unless($self->args->{output}{inline_only}){
     my $file=catfile $self->args->{html_root}, $self->output_path;
     mkpath dirname $file;		#make dir for output
 
@@ -677,7 +679,7 @@ sub build{
     }
   }
 
-  if($self->args->{output}{inline}){
+  if($self->args->{output}{inline} or $self->args->{output}{inline_only}){
     # return the kv pairs, inputpath, and string result
     return ($self->args->{plt}, $result);
   }

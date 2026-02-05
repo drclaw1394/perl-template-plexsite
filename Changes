@@ -1,4 +1,8 @@
 Revision history for Perl extension Template::Plex.
+v0.1.4
+  [features]
+    - Added delegate field
+
 v0.1.3
   [Features]
   - Add supports for inhertiting of templates via use of a package name

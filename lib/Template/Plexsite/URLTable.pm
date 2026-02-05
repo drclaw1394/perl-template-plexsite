@@ -18,7 +18,7 @@ use File::Spec::Functions qw<abs2rel rel2abs>;
 use File::Path qw<mkpath>;
 use File::Copy;
 
-use constant::more ("root_=0", qw<html_root_ table_ locale_ dir_table_ nav_ templates_ ordered_>);
+use constant::more ("root_=0", qw<html_root_ table_ locale_ dir_table_ nav_ templates_ ordered_ delegate_>);
 
 sub new {
 	my $package=shift;
@@ -35,6 +35,7 @@ sub new {
 		}
 	};
   $self->[ordered_]=[];
+  $self->[delegate_]=$options{delegate};
 
 	bless $self, $package;
 }
@@ -567,5 +568,9 @@ sub clear {
 
 sub table :lvalue{
 	$_[0][table_];
+}
+
+sub delegate :lvalue {
+  $_[0][delegate_];
 }
 1;
