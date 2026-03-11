@@ -3,6 +3,9 @@ v0.1.4
   [features]
     - Added delegate field
     - Added inline_only output option
+    - Added ids method/function. Maps a key local to template to global id.
+      Auto creates id if not existing.  Helpful in for html tags requiring ids
+    - Added UUID to deps
 
 v0.1.3
   [Features]

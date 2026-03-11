@@ -20,7 +20,7 @@ use File::Path qw<mkpath>;
 use Data::JPack;
 
 use constant::more KEY_OFFSET=>Template::Plex::KEY_COUNT+Template::Plex::KEY_OFFSET;
-use constant::more ("dependencies_=".KEY_OFFSET,qw<locale_sub_template_ input_path_ output_path_>);
+use constant::more ("dependencies_=".KEY_OFFSET,qw<locale_sub_template_ input_path_ ids_ output_path_>);
 use constant::more KEY_COUNT=> output_path_- dependencies_+1;
 
 
@@ -160,6 +160,9 @@ sub load {
     }',
     'sub plt_path{
       $self->plt_path(@_);
+    }',
+    'sub id {
+      $self->id(@_);
     }',
 		'sub lander {
 			$self->lander(@_);
@@ -319,7 +322,17 @@ sub plt_path {
 	my $plt_input= catfile($plt_dir,$input);
 }
 
+# Return a globally unique key for a key only unique to this template
 
+sub id{
+  my $self=shift;
+  my $local_key=shift;
+  for($self->[ids_]->{$local_key}){
+    require  UUID;
+    $_//=UUID::uuid4();
+    return $_;
+  }
+}
 
 # Construct the output path base on:
 # locale if defined

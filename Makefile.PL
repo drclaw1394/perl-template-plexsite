@@ -7,7 +7,8 @@ MIN_PERL_VERSION	=> v5.36,
       "constant::more" => 0,
 	    "Template::Plex"=>v0.9.4,
 	    "Log::ger"=> 0,
-      "Log::ger::Output::Screen"=>0
+      "Log::ger::Output::Screen"=>0,
+      "UUID"=>0
 
     },
     EXE_FILES =>[
