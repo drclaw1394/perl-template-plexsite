@@ -6,6 +6,10 @@ v0.1.4
     - Added ids method/function. Maps a key local to template to global id.
       Auto creates id if not existing.  Helpful in for html tags requiring ids
     - Added UUID to deps
+    - Add redriect output filter (File::Path::Redirect)
+    - Add symlink output filter
+    - Add jpack output filter
+      
 
 v0.1.3
   [Features]

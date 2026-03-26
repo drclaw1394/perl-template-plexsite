@@ -17,6 +17,7 @@ use File::Basename qw<dirname basename>;
 use File::Spec::Functions qw<abs2rel rel2abs>;
 use File::Path qw<mkpath>;
 use File::Copy;
+use File::Path::Redirect;
 
 use constant::more ("root_=0", qw<html_root_ table_ locale_ dir_table_ nav_ templates_ ordered_ delegate_>);
 
@@ -465,8 +466,19 @@ sub _static_files {
            
 
       }
+      elsif($filter->{"name"} eq "redirect"){
+        # The output file is to be a redirect file to the original
+			  Log::OK::INFO and log_info("$output REDIRECT to $input");
+        make_redirect$input, $output;
+      }
+      elsif($filter->{"name"} eq "symlink"){
+        # The output file is to be a link file to the original
+			  Log::OK::INFO and log_info("$output LINK to $input");
+        link $input, $output;
+      }
+
       else {
-			Log::OK::INFO and log_info("COPY $input=> $output");
+			Log::OK::INFO and log_info("$output COPY from  $input");
 			  copy $input, $output;
       }
 
