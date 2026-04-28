@@ -9,6 +9,10 @@ v0.1.4
     - Add redriect output filter (File::Path::Redirect)
     - Add symlink output filter
     - Add jpack output filter
+
+  [fixes]
+    - clean up sys paths when no relative segment provided
+    - explicitly use an empty string on undefined values
       
 
 v0.1.3

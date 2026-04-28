@@ -250,7 +250,10 @@ sub sys_path_src {
   my $path=shift;
   my $root=$self->meta->{root};
   # Return  the path relative to the the root (src) dir
-  $root."/".$path;
+  $path
+    ?  $root."/".$path
+    :  $root;
+
 }
 
 sub sys_path_build {
@@ -258,7 +261,10 @@ sub sys_path_build {
   my $path=shift;
   my $root=$self->args->{html_root};
   # Return  the path relative to the the root (src) dir
-  $root."/".$path;
+  $path
+    ?  $root."/".$path
+    :  $root;
+
 }
 
 

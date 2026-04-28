@@ -414,7 +414,7 @@ sub _static_files {
   #my $root=$self->[root_];
 	my $html_root=$self->[html_root_];
 
-  my @ordered=sort {$self->[table_]{$a}{static}{config}{output}{order} <=> $self->[table_]{$b}{static}{config}{output}{order}} keys $self->[table_]->%*;
+  my @ordered=sort {($self->[table_]{$a}{static}{config}{output}{order}//0) <=> ($self->[table_]{$b}{static}{config}{output}{order}//0)} keys $self->[table_]->%*;
 
 
   my $jpack=Data::JPack->new(jpack_compression=>"DEFLATE", jpack_type=>"app", html_container=>$html_root);
@@ -431,7 +431,7 @@ sub _static_files {
     $input=$root."/".$input;
 		my $output=$html_root."/".$entry->{output};
 
-		mkpath dirname $output;
+		eval {mkpath dirname $output};
 
 		my @stat_in=stat $input;
 		my @stat_out=stat $output;
@@ -439,7 +439,7 @@ sub _static_files {
 			Log::OK::ERROR and log_error "Could not locate input: $input";
 			next;
 		}
-      my $filter=$entry->{static}{config}{output}{filter};
+      my $filter=$entry->{static}{config}{output}{filter}//{name=>'copy'};
       #use Data::Dumper;
 
 		if($filter or !$stat_out[9] or $stat_out[9] < $stat_in[9]){

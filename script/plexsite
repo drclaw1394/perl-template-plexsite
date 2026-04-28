@@ -133,7 +133,7 @@ Log::OK::INFO and log_info "Rendering templates";
 my %res=$table->build;;
 
 # Print out the main one
-say $res{$main};
+say $res{$main}//"";
 
 exit;
 
