@@ -1,6 +1,6 @@
 Revision history for Perl extension Template::Plex.
-v0.1.4
-  [features]
+v0.1.4 2026-04-28
+  [Features]
     - Added delegate field
     - Added inline_only output option
     - Added ids method/function. Maps a key local to template to global id.

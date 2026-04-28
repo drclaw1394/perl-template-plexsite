@@ -9,8 +9,8 @@ MIN_PERL_VERSION	=> v5.36,
 	    "Log::ger"=> 0,
       "Log::ger::Output::Screen"=>0,
       "UUID"=>0,
-      "Data::JPack" => 0
-
+      "Data::JPack" => 0,
+      "File::Path::Redirect"=>v0.1.3,
     },
     EXE_FILES =>[
 		'script/plexsite'
