@@ -469,6 +469,12 @@ sub navi {
 }
 
 
+# create a landing page
+# Options include location, name and type
+# Types can be refresh... browser reloads
+# symlink the file is a symlink to aother
+# redirect like symlink but works with supported servers
+#
 sub lander {
 	my $self=shift;
 	my %options=@_;

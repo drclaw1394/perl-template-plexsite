@@ -124,10 +124,11 @@ sub add_resource {
 		#TODO: need to check that the file does not represent a html template
 		while(@stack){
 			my $item=pop @stack;
+      my $path=$root."/".$item;                                #
 			#Log::OK::DEBUG	 and log_debug "Plexsite: TESTING item  $item";
-			if( -d $item){
+			if( -d $path){
 				#TODO: filter with filter in options
-				push @stack, <"$item/*">;
+				push @stack, my @a=map {abs2rel($_, $root)} <"$path/*">;
 			}
 			else {
 				push @inputs, $item;

@@ -13,6 +13,7 @@ v0.1.4 2026-04-28
   [fixes]
     - clean up sys paths when no relative segment provided
     - explicitly use an empty string on undefined values
+    - Fix recursive resource adding with relative paths to root
       
 
 v0.1.3
