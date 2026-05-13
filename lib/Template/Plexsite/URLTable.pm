@@ -442,8 +442,10 @@ sub _static_files {
 		}
       my $filter=$entry->{static}{config}{output}{filter}//{name=>'copy'};
       #use Data::Dumper;
+    print STDERR "STAT in : @stat_in $input\n";
+    print STDERR "STAT out: @stat_out $output\n";
 
-		if($filter or !$stat_out[9] or $stat_out[9] < $stat_in[9]){
+		if(!$stat_out[9] or $stat_out[9] < $stat_in[9]){
 
       # Do filter here
       if($filter->{"name"} eq "jpack"){
@@ -461,7 +463,11 @@ sub _static_files {
         }
         $jpack->set_prefix($prefix);
         my $output=$jpack->next_file_name($input);
-        say STDERR "NEXT FILT NAME $output";
+
+        # Update the output of the file so future tests work
+        # NOTE... multiple files posssible is a single output... sooo.. need to do multiple passes?
+        $entry->{output}=$output;
+        #say STDERR "NEXT FILT NAME $output";
         $jpack->encode_file($input, $output);
 
            

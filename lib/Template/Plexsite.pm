@@ -499,7 +499,7 @@ sub once {
 
 
     my $input=$url_table->normalize_input_path($path);
-    say STDERR "NORMALIZED SCRIPT PATH $input";
+    #say STDERR "NORMALIZED SCRIPT PATH $input";
     my $res=$url_table->resource_info($input);
     my $render=undef;
     if($res){
@@ -553,7 +553,7 @@ sub pack_scripts {
     my $out_path=$jpack->next_file_name($_);
     next unless $out_path;
 
-    say STDERR "OUTPUT PATH IS $out_path";
+    #say STDERR "OUTPUT PATH IS $out_path";
 
     $jpack->encode_file($_, $out_path);
     push @outputs, $out_path;    #
@@ -583,7 +583,7 @@ sub pack_styles {
     my $out_path=$jpack->next_file_name($_);
     next unless $out_path;
 
-    say STDERR "OUTPUT PATH IS $out_path";
+    #say STDERR "OUTPUT PATH IS $out_path";
 
     $jpack->encode_file($_,$out_path);
     push @outputs, $out_path;    #
@@ -639,7 +639,7 @@ sub build{
   
 	my $result=$self->SUPER::render(@_);
   
-  say STDERR __PACKAGE__." build called.", join ", ", $self->args->{output}->%*;
+  #say STDERR __PACKAGE__." build called.", join ", ", $self->args->{output}->%*;
   # Generate the file at output location if no inline_only
   #
   unless($self->args->{output}{inline_only}){
