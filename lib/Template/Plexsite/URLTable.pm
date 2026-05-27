@@ -26,17 +26,30 @@ sub new {
 	my $self=[];
 	my %options=@_;
 	$self->[root_]=rel2abs($options{src});
-	$self->[html_root_]=$options{html_root};
-	$self->[table_]={};
-	$self->[locale_]=$options{locale};
-	$self->[nav_]={ 
+
+  if($options{merge}){
+    #Another URL table object we want to merge 
+    #This overrideres the table option
+    $self->[table_]=$options{merge}->[table_];
+    $self->[locale_]=$options{merge}->[locale_];
+    $self->[delegate_]=$options{merge}->[delegate_];
+    $self->[nav_]=$options{merge}->[nav_];
+    $self->[ordered_]=$options{merge}->[ordered_];
+    $self->[html_root_]=$options{merge}->[html_root_];
+
+  }
+
+	$self->[table_]//=$options{table}//{};      # Allow an external table to be used for merging
+	$self->[locale_]//=   $options{locale};
+  $self->[delegate_]//=$options{delegate};
+	$self->[nav_]//={ 
 		_data=>{
 			label=>"/",
 			href=>undef,
 		}
 	};
-  $self->[ordered_]=[];
-  $self->[delegate_]=$options{delegate};
+  $self->[ordered_]//=[];
+	$self->[html_root_]//=$options{html_root};
 
 	bless $self, $package;
 }
@@ -337,6 +350,7 @@ sub lookup {
 sub map_input_to_output {
   use feature ":all";
 	my ($self, $target, $reference)=@_;
+
   return "." unless $target;
 
 
@@ -442,8 +456,8 @@ sub _static_files {
 		}
       my $filter=$entry->{static}{config}{output}{filter}//{name=>'copy'};
       #use Data::Dumper;
-    print STDERR "STAT in : @stat_in $input\n";
-    print STDERR "STAT out: @stat_out $output\n";
+      #print STDERR "STAT in : @stat_in $input\n";
+    #print STDERR "STAT out: @stat_out $output\n";
 
 		if(!$stat_out[9] or $stat_out[9] < $stat_in[9]){
 

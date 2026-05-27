@@ -9,6 +9,7 @@ v0.1.4 2026-04-28
     - Add redriect output filter (File::Path::Redirect)
     - Add symlink output filter
     - Add jpack output filter
+    - Add merge constructor parameter in URLTable. 
 
   [fixes]
     - clean up sys paths when no relative segment provided
