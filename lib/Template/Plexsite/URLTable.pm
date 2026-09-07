@@ -439,7 +439,7 @@ sub _static_files {
   for my $input (@ordered){
 		my $entry=$self->[table_]{$input};
 		next if $entry->{template};
-		Log::OK::INFO and log_info __PACKAGE__." static files: processing $input";
+		Log::OK::TRACE and log_trace __PACKAGE__." static files: processing $input";
 
 
     my $root=$entry->{root};
