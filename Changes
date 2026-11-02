@@ -1,5 +1,8 @@
 Revision history for Perl extension Template::Plex.
+
 v0.1.4 2026-04-28
+  [Changes]
+    - options to add_resource and add_plt_resource are now hash refs
   [Features]
     - Added delegate field
     - Added inline_only output option

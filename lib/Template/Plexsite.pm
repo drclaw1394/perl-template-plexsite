@@ -92,14 +92,15 @@ sub inherit {
 sub inject {
 	my $self=shift;
   my $package=$_[0]; 
-  my $root=$_[1]; 
+  my $options=$_[1]//{};
 
+  my $root;
   my $tpath;
   if($package=~/::/){
     eval "require $package";
     ($tpath, $root)= $package->template_path;
   }
-  $package->add_to_container($self);
+  $package->add_to_container($self, $options);
 }
 
 # Locates the first index.*.plex file in a plt directory and loads it
@@ -231,10 +232,10 @@ sub no_locale_out{
 #This is most useful when a template renders other templates as content instead of links
 #
 sub add_resource {
-	my ($self, $input, %options)=@_;
+	my ($self, $input, $options)=@_;
 	#use the URLTable object in args 	
-	my $table=$options{table}//$self->args->{table};
-	my @input=$table->add_resource($input, %options);
+	my $table=$options->{table}//$self->args->{table};
+	my @input=$table->add_resource($input, $options);
 	
 	#return the output relative path directly
 	my @path=map {$table->map_input_to_output($_, $self->args->{target}//$self->args->{plt})} @input;
@@ -296,7 +297,7 @@ sub existing_resource {
 # Adds a resourse relative to the currnet template (plt)
 # Output is set relativet to output location of plt by default
 sub add_plt_resource {
-	my ($self, $input, %options)=@_;
+	my ($self, $input, $options)=@_;
 
   my $plt_input=$self->plt_path($input);
 
@@ -305,12 +306,12 @@ sub add_plt_resource {
     $output_path.="a";
   }
 
-	$options{output}=catfile dirname($output_path), $input;
+	$options->{output}=catfile dirname($output_path), $input;
 
   #say STDERR "---ADDING PLT RES ", $plt_input;
 	$self->add_resource(
 		$plt_input,
-		%options
+		$options
 	);
 	
 }

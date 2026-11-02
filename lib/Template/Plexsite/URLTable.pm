@@ -86,7 +86,7 @@ sub normalize_input_path {
 #if input is a dir all items are added
 sub add_resource {
   state $seq=0;
-	my ($self, $input, %options)=@_;
+	my ($self, $input, $options)=@_;
 	
 	my $root=$self->[root_];
 	\my %table=$self->[table_];
@@ -122,7 +122,7 @@ sub add_resource {
   #
   #say STDERR "PATH IS $path";
 	if(-d $path and $path =~ /plt$/){
-		$return=$self->_add_template($input, %options);
+		$return=$self->_add_template($input, $options);
 		goto OUTPUT;
 
 	}
@@ -152,11 +152,11 @@ sub add_resource {
 
       
 			#strip root from working dir relative paths from globbing
-			my %opts=%options;
+			my %opts=%$options;
       $opts{static}{config}{output}{order}=$seq++;
 
       # Use forced output path if specified
-      unless($options{output}){
+      unless($options->{output}){
 			  $opts{output}=$_;
       }
 
@@ -214,7 +214,7 @@ sub add_resource {
 #setup table entry
 #
 sub _add_template {
-	my ($self, $input, %options)=@_;
+	my ($self, $input, $options)=@_;
 
 	Log::OK::INFO and log_info("Resource: Adding template $input");
 	Log::OK::INFO and log_info("Resource: locale set to: $self->[locale_]");
@@ -229,7 +229,7 @@ sub _add_template {
 	my %entry=(
 		template=> {
 			config=>{         # config is the hash used for lexical binding
-        target=>$options{target},  # relative path to document. overrides plt for nav
+        target=>$options->{target},  # relative path to document. overrides plt for nav
 				plexsite=>{},
 				menu=>undef,		#Templates spec on menu	(stage 1)
 				nav=>$self->[nav_],		#Acculated menu tree	(stage 2)
